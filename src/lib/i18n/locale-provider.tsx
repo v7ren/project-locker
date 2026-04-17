@@ -35,12 +35,40 @@ function readStoredLocale(): AppLocale {
   return defaultLocale;
 }
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<AppLocale>(defaultLocale);
+function writeLocaleCookie(next: AppLocale) {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${localeStorageKey}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  } catch {
+    /* ignore */
+  }
+}
+
+export function LocaleProvider({
+  children,
+  initialLocale,
+}: {
+  children: React.ReactNode;
+  /** From `getRequestLocale()` in root layout so SSR matches the first client render. */
+  initialLocale?: AppLocale;
+}) {
+  const [locale, setLocaleState] = useState<AppLocale>(
+    () => initialLocale ?? defaultLocale,
+  );
 
   useEffect(() => {
-    setLocaleState(readStoredLocale());
-  }, []);
+    try {
+      const raw = window.localStorage.getItem(localeStorageKey);
+      if (raw === "en" || raw === "zh-TW") {
+        setLocaleState(raw);
+        writeLocaleCookie(raw);
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
+    writeLocaleCookie(initialLocale ?? defaultLocale);
+  }, [initialLocale]);
 
   const setLocale = useCallback((next: AppLocale) => {
     setLocaleState(next);
@@ -49,6 +77,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
+    writeLocaleCookie(next);
   }, []);
 
   useEffect(() => {

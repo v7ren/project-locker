@@ -105,6 +105,7 @@ export function DocsExplorer({ projects, filterSlug }: Props) {
             </div>
             <Link
               href={`/${meta.slug}/dashboard?tab=docs`}
+              prefetch={false}
               className="shrink-0 text-xs font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
             >
               {t("explorer.manageDashboard")}
@@ -126,6 +127,7 @@ export function DocsExplorer({ projects, filterSlug }: Props) {
                   <li key={rel}>
                     <Link
                       href={href}
+                      prefetch={false}
                       className="group flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm outline-none ring-zinc-400 transition [aspect-ratio:1/1] hover:border-zinc-300 hover:shadow-md focus-visible:ring-2 sm:rounded-2xl dark:border-zinc-700 dark:bg-zinc-950 dark:hover:border-zinc-600"
                     >
                       <div
@@ -174,6 +176,7 @@ export function DocsExplorerHeader({
       </p>
       <Link
         href="/docs"
+        prefetch={false}
         className="text-xs font-medium text-zinc-600 underline-offset-2 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
       >
         {t("docsPage.showAll")}

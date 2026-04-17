@@ -82,7 +82,6 @@ export type MessageKey =
   | "upload.uploading"
   | "upload.failed"
   | "upload.savedAs"
-  | "docPage.openDirectDocs"
   | "docPage.embedNote"
   | "docViewer.pdfHint"
   | "docViewer.htmlHint"
@@ -159,7 +158,10 @@ export type MessageKey =
   | "publicShare.readOnlyBadge"
   | "publicShare.publicBadge"
   | "viewerUi.hideAll"
-  | "viewerUi.showAll";
+  | "viewerUi.showAll"
+  | "viewerUi.viewModeToolbar"
+  | "viewerUi.standardLayout"
+  | "viewerUi.focusLayout";
 
 const en: Record<MessageKey, string> = {
   "common.projects": "Projects",
@@ -247,9 +249,9 @@ const en: Record<MessageKey, string> = {
   "upload.uploading": "Uploading…",
   "upload.failed": "Upload failed",
   "upload.savedAs": "Saved as {{name}}.",
-  "docPage.openDirectDocs": "Open direct /docs URL",
   "docPage.embedNote": "(embeds that URL below)",
-  "docViewer.pdfHint": "Preview loads from the published docs URL (same origin).",
+  "docViewer.pdfHint":
+    "Preview loads from the published docs URL (same origin). If your browser console shows failed requests to another host or port (for example an old dev server), those usually come from link annotations inside the PDF, not from this app.",
   "docViewer.htmlHint": "Sandboxed preview of uploaded HTML.",
   "docViewer.mdHint": "Markdown should open in the editor workspace.",
   "docViewer.codeHint": "Text preview in a sandboxed frame. Use Raw for download.",
@@ -334,6 +336,9 @@ const en: Record<MessageKey, string> = {
   "publicShare.publicBadge": "Public",
   "viewerUi.hideAll": "Hide floating UI",
   "viewerUi.showAll": "Show floating UI",
+  "viewerUi.viewModeToolbar": "View mode",
+  "viewerUi.standardLayout": "Standard — toolbars, dock, and breadcrumbs",
+  "viewerUi.focusLayout": "Focus — content only",
 };
 
 const zhTW: Record<MessageKey, string> = {
@@ -348,7 +353,7 @@ const zhTW: Record<MessageKey, string> = {
   "common.cancel": "取消",
   "common.create": "建立",
   "common.creating": "建立中…",
-  "common.raw": "原始檔",
+  "common.raw": "開啟原始 /docs 網址",
   "common.saved": "已儲存",
   "common.saveShortcut": "⌘S / Ctrl+S 儲存",
   "common.unsavedChanges": "有未儲存的變更",
@@ -418,12 +423,12 @@ const zhTW: Record<MessageKey, string> = {
   "upload.uploading": "上傳中…",
   "upload.failed": "上傳失敗",
   "upload.savedAs": "已儲存為 {{name}}。",
-  "docPage.openDirectDocs": "開啟原始 /docs 網址",
   "docPage.embedNote": "（下方嵌入該網址）",
-  "docViewer.pdfHint": "預覽來自公開文件網址（同源）。",
+  "docViewer.pdfHint":
+    "預覽來自公開文件網址（同源）。若開發者工具出現連到其他主機或埠（例如舊的本地開發網址）的失敗請求，多半是 PDF 內嵌連結註解造成，而非此應用程式。",
   "docViewer.htmlHint": "上傳 HTML 的沙箱預覽。",
   "docViewer.mdHint": "Markdown 應在編輯器工作區開啟。",
-  "docViewer.codeHint": "沙箱 iframe 文字預覽。下載請用「原始檔」。",
+  "docViewer.codeHint": "沙箱 iframe 文字預覽。下載請用 Raw。",
   "docViewer.otherHint": "此檔案類型沒有內建預覽。請開啟原始網址或下載。",
   "docViewer.openFile": "開啟檔案",
   "docsWs.pasteTitle": "貼上 Markdown",
@@ -500,6 +505,9 @@ const zhTW: Record<MessageKey, string> = {
   "publicShare.publicBadge": "公開",
   "viewerUi.hideAll": "隱藏浮動介面",
   "viewerUi.showAll": "顯示浮動介面",
+  "viewerUi.viewModeToolbar": "檢視模式",
+  "viewerUi.standardLayout": "標準 — 工具列、快捷列與麵包屑",
+  "viewerUi.focusLayout": "專注 — 僅內容",
 };
 
 export const messages: Record<AppLocale, Record<MessageKey, string>> = {

@@ -1,5 +1,7 @@
 /** No Node imports — safe for client components. */
 
+import { encodeDocsPathTrail } from "@/lib/doc-paths";
+
 export function normalizeShareKey(raw: string): string {
   return raw.trim().replace(/^\/+/, "").replace(/\\/g, "/");
 }
@@ -9,17 +11,17 @@ export function publicSharedHomeHref(projectSlug: string): string {
 }
 
 export function publicSharedMarkdownHref(projectSlug: string, relativePath: string): string {
-  const enc = relativePath.split("/").map(encodeURIComponent).join("/");
+  const enc = encodeDocsPathTrail(relativePath);
   return `/${projectSlug}/public/md/${enc}`;
 }
 
 export function publicSharedDocumentViewerHref(projectSlug: string, relativePath: string): string {
-  const enc = relativePath.split("/").map(encodeURIComponent).join("/");
+  const enc = encodeDocsPathTrail(relativePath);
   return `/${projectSlug}/public/doc/${enc}`;
 }
 
 export function publicSharedDocServeHref(projectSlug: string, relativePath: string): string {
-  const enc = relativePath.split("/").map(encodeURIComponent).join("/");
+  const enc = encodeDocsPathTrail(relativePath);
   return `/${projectSlug}/public/docs/${enc}`;
 }
 

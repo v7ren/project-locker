@@ -34,7 +34,7 @@ function allowlistMaxCount(): number | undefined {
 
 /**
  * Parse allowlisted sign-in emails. Supports comma, newline, or semicolon between addresses
- * (handy for `.env` and Vercel multiline). Dedupes case-insensitively.
+ * (handy for `.env` and hosted env multiline values). Dedupes case-insensitively.
  */
 export function parseAllowedEmails(raw: string | undefined): Set<string> {
   const out = new Set<string>();

@@ -303,6 +303,7 @@ export function DocsWorkspace({ slug, files: initial }: Props) {
                     ) : (
                       <Link
                         href={openHref}
+                        prefetch={false}
                         className="group block min-w-0 rounded-lg text-zinc-900 outline-none ring-zinc-400 focus-visible:ring-2 dark:text-zinc-50"
                       >
                         <span className="text-pretty text-sm font-medium leading-snug underline decoration-zinc-300 underline-offset-2 group-hover:decoration-zinc-500 dark:decoration-zinc-600">
@@ -318,6 +319,7 @@ export function DocsWorkspace({ slug, files: initial }: Props) {
                     {isMd && !isEditing ? (
                       <Link
                         href={rawHref}
+                        prefetch={false}
                         className="rounded-md border border-zinc-200 px-2 py-1 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                       >
                         {t("docsWs.rawMd")}

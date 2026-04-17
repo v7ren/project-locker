@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { publicPathForShareKey } from "@/lib/public-share-urls";
+import { normalizeShareKey, publicPathForShareKey } from "@/lib/public-share-urls";
 import { useTranslations } from "@/lib/i18n/locale-provider";
 import { cn } from "@/lib/utils";
 
@@ -30,18 +30,40 @@ export function PublicSharePanel({ slug, shareKey, triggerClassName }: Props) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [linkPath, setLinkPath] = useState(() => publicPathForShareKey(slug, shareKey));
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/projects/${encodeURIComponent(slug)}/public-share`);
+    const q = new URLSearchParams({ key: shareKey });
+    const res = await fetch(
+      `/api/projects/${encodeURIComponent(slug)}/public-share?${q.toString()}`,
+    );
     if (!res.ok) {
       setLoading(false);
       return;
     }
-    const data = (await res.json()) as { paths?: string[] };
+    const data = (await res.json()) as {
+      paths?: string[];
+      isPublic?: boolean;
+      viewerPath?: string | null;
+    };
     const paths = Array.isArray(data.paths) ? data.paths : [];
-    setIsPublic(paths.includes(shareKey));
+    if (typeof data.isPublic === "boolean") {
+      setIsPublic(data.isPublic);
+    } else {
+      const nk = normalizeShareKey(shareKey);
+      setIsPublic(paths.some((p) => normalizeShareKey(p) === nk));
+    }
+    if (typeof data.viewerPath === "string" && data.viewerPath.startsWith("/")) {
+      setLinkPath(data.viewerPath);
+    } else {
+      setLinkPath(publicPathForShareKey(slug, shareKey));
+    }
     setLoading(false);
+  }, [shareKey, slug]);
+
+  useEffect(() => {
+    setLinkPath(publicPathForShareKey(slug, shareKey));
   }, [shareKey, slug]);
 
   useEffect(() => {
@@ -52,9 +74,7 @@ export function PublicSharePanel({ slug, shareKey, triggerClassName }: Props) {
   }, [open, refresh]);
 
   const publicUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${publicPathForShareKey(slug, shareKey)}`
-      : publicPathForShareKey(slug, shareKey);
+    typeof window !== "undefined" ? `${window.location.origin}${linkPath}` : linkPath;
 
   const copyLink = useCallback(async () => {
     setMessage(null);
@@ -76,13 +96,25 @@ export function PublicSharePanel({ slug, shareKey, triggerClassName }: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key: shareKey, public: next }),
         });
-        const data = (await res.json().catch(() => ({}))) as { error?: string; paths?: string[] };
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          paths?: string[];
+          isPublic?: boolean;
+          viewerPath?: string | null;
+        };
         if (!res.ok) {
           setMessage(data.error ?? t("publicShare.toggleFailed"));
           return;
         }
         const paths = Array.isArray(data.paths) ? data.paths : [];
-        setIsPublic(paths.includes(shareKey));
+        const pub =
+          typeof data.isPublic === "boolean"
+            ? data.isPublic
+            : paths.some((p) => normalizeShareKey(p) === normalizeShareKey(shareKey));
+        setIsPublic(pub);
+        if (typeof data.viewerPath === "string" && data.viewerPath.startsWith("/")) {
+          setLinkPath(data.viewerPath);
+        }
         setMessage(next ? t("publicShare.nowPublic") : t("publicShare.nowPrivate"));
       } finally {
         setBusy(false);

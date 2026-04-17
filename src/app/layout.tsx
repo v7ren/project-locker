@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { AppThemeProvider } from "@/components/app-theme-provider";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -35,6 +36,8 @@ export default async function RootLayout({
     sessionUser = null;
   }
 
+  const initialLocale = await getRequestLocale();
+
   return (
     <html
       lang="zh-Hant"
@@ -42,7 +45,12 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <AppThemeProvider session={{ email: sessionUser?.email ?? null }}>{children}</AppThemeProvider>
+        <AppThemeProvider
+          session={{ email: sessionUser?.email ?? null }}
+          initialLocale={initialLocale}
+        >
+          {children}
+        </AppThemeProvider>
       </body>
     </html>
   );

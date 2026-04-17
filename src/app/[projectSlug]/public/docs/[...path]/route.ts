@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
+import path from "node:path";
 import { isPathPublic } from "@/lib/public-share";
+import { encodeDocsPathTrail, segmentsToDocsRelativePath } from "@/lib/doc-paths";
 import {
   isSafeRelativeSegments,
   projectExists,
-  resolveDocsFile,
+  resolveDocFilePath,
 } from "@/lib/projects";
 
 function mimeFor(filename: string): string {
@@ -31,31 +33,25 @@ export async function GET(request: Request, context: RouteCtx) {
     return new NextResponse("Bad path", { status: 400 });
   }
 
-  const rel = segments.join("/");
+  const rel = segmentsToDocsRelativePath(segments);
   const shareKey = `doc/${rel}`;
   if (!(await isPathPublic(projectSlug, shareKey))) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const filePath = resolveDocsFile(projectSlug, segments);
-  let stat: Awaited<ReturnType<typeof fs.stat>>;
-  try {
-    stat = await fs.stat(filePath);
-  } catch {
-    return new NextResponse("Not found", { status: 404 });
-  }
-  if (!stat.isFile()) {
+  const filePath = await resolveDocFilePath(projectSlug, rel);
+  if (!filePath) {
     return new NextResponse("Not found", { status: 404 });
   }
 
   const buf = await fs.readFile(filePath);
-  const basename = segments[segments.length - 1] ?? "";
+  const basename = path.basename(filePath);
   const lower = basename.toLowerCase();
   const url = new URL(request.url);
   const raw = url.searchParams.get("raw") === "1";
 
   if ((lower.endsWith(".md") || lower.endsWith(".markdown")) && !raw) {
-    const enc = segments.map((s) => encodeURIComponent(s)).join("/");
+    const enc = encodeDocsPathTrail(rel);
     const target = new URL(`/${projectSlug}/public/md/${enc}`, url.origin);
     return NextResponse.redirect(target, 307);
   }

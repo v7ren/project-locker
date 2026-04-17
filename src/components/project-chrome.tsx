@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import type { BreadcrumbTrailItem } from "@/components/breadcrumb-trail";
 import { CenterBreadcrumbBar } from "@/components/center-breadcrumb-bar";
 import { PublicSharePanel } from "@/components/public-share-panel";
-import { MobileViewerChromeToggle } from "@/components/mobile-viewer-chrome-toggle";
 import { TopRightTheme } from "@/components/top-right-theme";
 import { useViewerChromeOptional } from "@/components/viewer-chrome-context";
 import { decodeDocUrlTrail, formatDocPathForDisplay } from "@/lib/doc-paths";
@@ -44,6 +43,7 @@ function BottomRightProjectDock({ slug }: { slug: string }) {
   const pathname = usePathname() ?? "";
   const onPublic = isPublicViewerPath(pathname, slug);
   const onHome = isProjectHomePath(pathname, slug);
+  const hideFloatingChrome = Boolean(viewerChrome?.floatingUiHidden);
 
   if (onPublic) {
     return null;
@@ -54,7 +54,7 @@ function BottomRightProjectDock({ slug }: { slug: string }) {
       className={cn(
         dockPillOuter,
         "bottom-[max(5.75rem,calc(env(safe-area-inset-bottom)+4.75rem))] right-[max(1rem,env(safe-area-inset-right))] max-sm:bottom-[max(7rem,calc(env(safe-area-inset-bottom)+6rem))] items-end",
-        viewerChrome?.floatingUiHidden && "max-sm:hidden",
+        hideFloatingChrome && "hidden",
       )}
       aria-live="polite"
     >
@@ -237,7 +237,9 @@ function ProjectBreadcrumbLayer({ slug, name }: Props) {
 export function ProjectChrome({ slug, name }: Props) {
   const { t } = useTranslations();
   const pathname = usePathname() ?? "";
-  const viewerChrome = useViewerChromeOptional();
+  if (isPublicViewerPath(pathname, slug)) {
+    return null;
+  }
   const onDashboard = pathname.includes("/dashboard");
   const showImmersiveDock = !onDashboard;
 
@@ -246,12 +248,7 @@ export function ProjectChrome({ slug, name }: Props) {
       <TopRightTheme />
 
       {onDashboard ? (
-        <header
-          className={cn(
-            "sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/95 pt-[env(safe-area-inset-top)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95",
-            viewerChrome?.floatingUiHidden && "max-sm:hidden",
-          )}
-        >
+        <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-zinc-50/95 pt-[env(safe-area-inset-top)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
           <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-wrap gap-1.5 px-[max(1rem,env(safe-area-inset-left))] py-3 pr-[max(1rem,env(safe-area-inset-right))] text-sm">
             <Link
               href={`/${slug}`}
@@ -278,8 +275,6 @@ export function ProjectChrome({ slug, name }: Props) {
       <ProjectBreadcrumbLayer slug={slug} name={name} />
 
       {showImmersiveDock ? <BottomRightProjectDock slug={slug} /> : null}
-
-      <MobileViewerChromeToggle />
     </>
   );
 }

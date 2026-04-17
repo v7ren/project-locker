@@ -3,6 +3,7 @@ import {
   isPathPublic,
   isValidShareKey,
   normalizeShareKey,
+  publicShareViewerPathForKey,
   readPublicShareManifest,
   setPathPublic,
 } from "@/lib/public-share";
@@ -10,12 +11,21 @@ import { projectExists } from "@/lib/projects";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
-export async function GET(_request: Request, context: Ctx) {
+export async function GET(request: Request, context: Ctx) {
   const { slug } = await context.params;
   if (!(await projectExists(slug))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
   const manifest = await readPublicShareManifest(slug);
+  const key = new URL(request.url).searchParams.get("key");
+  if (key && key.trim()) {
+    const kt = key.trim();
+    return NextResponse.json({
+      ...manifest,
+      isPublic: await isPathPublic(slug, kt),
+      viewerPath: await publicShareViewerPathForKey(slug, kt),
+    });
+  }
   return NextResponse.json(manifest);
 }
 
@@ -51,5 +61,10 @@ export async function POST(request: Request, context: Ctx) {
   }
 
   const paths = (await readPublicShareManifest(slug)).paths;
-  return NextResponse.json({ ok: true, paths, isPublic: await isPathPublic(slug, key) });
+  return NextResponse.json({
+    ok: true,
+    paths,
+    isPublic: await isPathPublic(slug, key),
+    viewerPath: await publicShareViewerPathForKey(slug, key),
+  });
 }

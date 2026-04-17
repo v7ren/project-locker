@@ -1,6 +1,7 @@
 import { DocumentViewerPageBody } from "@/components/document-viewer-page-body";
-import { docFileKind } from "@/lib/doc-file-kind";
-import { markdownWorkspaceHref, publicDocHref } from "@/lib/doc-paths";
+import { markdownWorkspaceHref, publicDocHref, segmentsToDocsRelativePath } from "@/lib/doc-paths";
+import { translate } from "@/lib/i18n/messages";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
 import {
   isDocFile,
   isSafeRelativeSegments,
@@ -25,7 +26,7 @@ export default async function DocumentViewerPage({ params }: Props) {
     notFound();
   }
 
-  const relativePath = segments.join("/");
+  const relativePath = segmentsToDocsRelativePath(segments);
   const lower = (segments[segments.length - 1] ?? "").toLowerCase();
   if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
     redirect(markdownWorkspaceHref(meta.slug, relativePath));
@@ -36,15 +37,16 @@ export default async function DocumentViewerPage({ params }: Props) {
   }
 
   const fileUrl = publicDocHref(meta.slug, relativePath);
-  const kind = docFileKind(relativePath);
+  const locale = await getRequestLocale();
 
   return (
     <DocumentViewerPageBody
       slug={meta.slug}
       relativePath={relativePath}
       fileUrl={fileUrl}
-      kind={kind}
       shareKey={`doc/${relativePath}`}
+      rawLabel={translate(locale, "common.raw")}
+      embedNoteLabel={translate(locale, "docPage.embedNote")}
     />
   );
 }

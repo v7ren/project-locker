@@ -2,21 +2,16 @@
 
 import { useTranslations } from "@/lib/i18n/locale-provider";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-
-function useIsClient(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
 
 export function ThemeToggle({ className = "" }: { className?: string }) {
   const { t } = useTranslations();
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const mounted = useIsClient();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (

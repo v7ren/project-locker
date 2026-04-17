@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
+import { decodePathSegment } from "@/lib/doc-paths";
 
 export type ProjectMeta = {
   name: string;
@@ -11,27 +11,21 @@ export type ProjectMeta = {
 /**
  * Where project folders (`{slug}/project.json`, `docs/`, `home/`) live.
  *
- * - Local default: `./data/projects` (same as before).
- * - **Vercel:** the serverless filesystem is not writable under `process.cwd()`; when `VERCEL=1`
- *   and `PROJECT_DATA_ROOT` is unset, we use a subdirectory of `os.tmpdir()` (ephemeral — use
- *   `PROJECT_DATA_ROOT` or attach persistent storage for production).
+ * Default: `./data/projects` (bundled or bind-mounted content under the app directory).
+ * Override with **`PROJECT_DATA_ROOT`** (absolute path, or relative to `process.cwd()`) for a
+ * different data directory or writable volume.
  */
 function resolveProjectsDataRoot(): string {
   const explicit = process.env.PROJECT_DATA_ROOT?.trim();
   if (explicit) {
     return path.isAbsolute(explicit) ? explicit : path.join(process.cwd(), explicit);
   }
-  if (process.env.VERCEL === "1") {
-    return path.join(os.tmpdir(), "projectmanagement-dashboard", "projects");
-  }
   return path.join(process.cwd(), "data", "projects");
 }
 
-let cachedDataRoot: string | null = null;
-
+/** `./data/projects` unless `PROJECT_DATA_ROOT` is set (same default as early shipped revisions). */
 function dataRoot(): string {
-  cachedDataRoot ??= resolveProjectsDataRoot();
-  return cachedDataRoot;
+  return resolveProjectsDataRoot();
 }
 
 export function getDataRoot(): string {
@@ -56,11 +50,7 @@ export async function ensureDataRoot(): Promise<void> {
 }
 
 export async function listProjects(): Promise<ProjectMeta[]> {
-  try {
-    await ensureDataRoot();
-  } catch {
-    return [];
-  }
+  await ensureDataRoot();
   const entries = await fs.readdir(dataRoot(), { withFileTypes: true });
   const projects: ProjectMeta[] = [];
   for (const e of entries) {
@@ -140,6 +130,71 @@ export function resolveDocsFile(slug: string, segments: string[]): string {
   return path.join(docsDir(slug), ...segments);
 }
 
+/** True if URL segment matches on-disk name (NFC, optional whitespace collapse, Unicode white space). */
+function docSegmentMatchesDisk(diskName: string, urlSegment: string): boolean {
+  const a = diskName.normalize("NFC");
+  const b = urlSegment.normalize("NFC");
+  if (a === b) return true;
+  const stripWs = (s: string) => s.replace(/\p{White_Space}/gu, "");
+  return stripWs(a) === stripWs(b);
+}
+
+/**
+ * Resolves a docs-relative path to an on-disk file. Tries the exact path first, then matches each
+ * segment by **Unicode NFC**, then **ignores whitespace** in segments (fixes `mOx%20系…` vs `mOx系…`).
+ */
+export async function resolveDocFilePath(
+  slug: string,
+  relativePath: string,
+): Promise<string | null> {
+  const rel = relativePath.trim().replace(/^\/+/, "");
+  const segments = rel
+    .split("/")
+    .map((s) => decodePathSegment(s.trim()))
+    .filter(Boolean);
+  if (!isSafeRelativeSegments(segments)) return null;
+
+  const full = resolveDocsFile(slug, segments);
+  try {
+    const st = await fs.stat(full);
+    if (st.isFile()) return full;
+    return null;
+  } catch {
+    /* try NFC / whitespace-tolerant segment-by-segment match */
+  }
+
+  let dir = docsDir(slug);
+
+  for (let i = 0; i < segments.length; i++) {
+    const isLast = i === segments.length - 1;
+    let names: string[];
+    try {
+      names = await fs.readdir(dir);
+    } catch {
+      return null;
+    }
+    const match = names.find((n) => docSegmentMatchesDisk(n, segments[i]!));
+    if (!match) return null;
+    const nextPath = path.join(dir, match);
+    if (isLast) {
+      try {
+        const st = await fs.stat(nextPath);
+        return st.isFile() ? nextPath : null;
+      } catch {
+        return null;
+      }
+    }
+    try {
+      const st = await fs.stat(nextPath);
+      if (!st.isDirectory()) return null;
+    } catch {
+      return null;
+    }
+    dir = nextPath;
+  }
+  return null;
+}
+
 export async function listDocFiles(slug: string): Promise<string[]> {
   const root = docsDir(slug);
   try {
@@ -165,15 +220,9 @@ export async function readDocFile(
   slug: string,
   relativePath: string,
 ): Promise<string | null> {
-  const rel = relativePath.trim().replace(/^\/+/, "");
-  const segments = rel.split("/").filter(Boolean);
-  if (!isSafeRelativeSegments(segments)) {
-    return null;
-  }
-  const full = resolveDocsFile(slug, segments);
+  const full = await resolveDocFilePath(slug, relativePath);
+  if (!full) return null;
   try {
-    const stat = await fs.stat(full);
-    if (!stat.isFile()) return null;
     return await fs.readFile(full, "utf8");
   } catch {
     return null;
@@ -185,16 +234,8 @@ export async function isDocFile(
   slug: string,
   relativePath: string,
 ): Promise<boolean> {
-  const rel = relativePath.trim().replace(/^\/+/, "");
-  const segments = rel.split("/").filter(Boolean);
-  if (!isSafeRelativeSegments(segments)) return false;
-  const full = resolveDocsFile(slug, segments);
-  try {
-    const stat = await fs.stat(full);
-    return stat.isFile();
-  } catch {
-    return false;
-  }
+  const full = await resolveDocFilePath(slug, relativePath);
+  return full !== null;
 }
 
 export async function writeDocFile(

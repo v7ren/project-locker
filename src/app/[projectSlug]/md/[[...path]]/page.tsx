@@ -1,4 +1,5 @@
 import { MdViewerWorkspaceLoader } from "@/components/mdviewer-workspace-loader";
+import { segmentsToDocsRelativePath } from "@/lib/doc-paths";
 import { notFound, redirect } from "next/navigation";
 import {
   isSafeRelativeSegments,
@@ -23,8 +24,8 @@ export default async function MarkdownEditorPage({ params }: Props) {
     notFound();
   }
 
-  const relativePath = segments.join("/");
-  const lower = (segments[segments.length - 1] ?? "").toLowerCase();
+  const relativePath = segmentsToDocsRelativePath(segments);
+  const lower = (relativePath.split("/").pop() ?? "").toLowerCase();
   if (!lower.endsWith(".md") && !lower.endsWith(".markdown")) {
     notFound();
   }

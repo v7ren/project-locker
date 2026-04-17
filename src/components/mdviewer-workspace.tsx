@@ -60,7 +60,7 @@ export function MdViewerWorkspace({
 }: Props) {
   const { t } = useTranslations();
   const viewerChrome = useViewerChromeOptional();
-  const hideFloatingMobile = Boolean(viewerChrome?.floatingUiHidden);
+  const hideFloatingUi = Boolean(viewerChrome?.floatingUiHidden);
   const { resolvedTheme } = useTheme();
   const [value, setValue] = useState(initialContent);
   const [lastSaved, setLastSaved] = useState(initialContent);
@@ -71,6 +71,7 @@ export function MdViewerWorkspace({
   const [saveToastPhase, setSaveToastPhase] = useState<"hidden" | "visible" | "leaving">("hidden");
   const saveToastTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  const anonymousPublicMd = readOnly && rawDocHrefBase === "public";
   const dirty = value !== lastSaved;
   const rawHref =
     rawDocHrefBase === "public"
@@ -217,54 +218,56 @@ export function MdViewerWorkspace({
     <div className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-background">
       <style dangerouslySetInnerHTML={{ __html: MDVIEWER_PREVIEW_CSS }} />
 
-      <div
-        className={cn(
-          "pointer-events-none fixed left-0 top-0 z-[254] flex max-w-[min(100%,18rem)] flex-col px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.65rem,env(safe-area-inset-top))] pr-2 max-sm:max-w-[min(100%,16rem)]",
-          hideFloatingMobile && "max-sm:hidden",
-        )}
-        aria-label={t("mdViewer.docCardAria")}
-      >
+      {!anonymousPublicMd ? (
         <div
           className={cn(
-            glassCard,
-            "pointer-events-auto min-w-0 max-sm:max-h-[min(34vh,15.5rem)] max-sm:overflow-y-auto max-sm:overscroll-contain",
+            "pointer-events-none fixed left-0 top-0 z-[254] flex max-w-[min(100%,18rem)] flex-col px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.65rem,env(safe-area-inset-top))] pr-2 max-sm:max-w-[min(100%,16rem)]",
+            hideFloatingUi && "hidden",
           )}
+          aria-label={t("mdViewer.docCardAria")}
         >
-          <h1 className="truncate text-[11px] font-semibold leading-snug text-zinc-900 sm:text-xs dark:text-zinc-50">
-            {displayName}
-          </h1>
-          {readOnly ? (
-            <p className="mt-1 text-[10px] font-medium text-emerald-800 dark:text-emerald-300">
-              {t("publicShare.readOnlyBadge")}
-            </p>
-          ) : (
-            <p className="mt-1 text-[10px] leading-snug text-zinc-600 dark:text-zinc-300">
-              {t("common.saveShortcut")}
-            </p>
-          )}
-          {!readOnly && busy ? (
-            <p className="mt-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400">{t("common.saving")}</p>
-          ) : !readOnly && dirty ? (
-            <p className="mt-1.5 text-[10px] font-medium text-amber-800 dark:text-amber-300">
-              {t("common.unsavedChanges")}
-            </p>
-          ) : null}
-          <Link
-            href={rawHref}
-            className="mt-2 inline-block text-[10px] font-medium text-zinc-700 underline-offset-2 hover:underline dark:text-zinc-200"
+          <div
+            className={cn(
+              glassCard,
+              "pointer-events-auto min-w-0 max-sm:max-h-[min(34vh,15.5rem)] max-sm:overflow-y-auto max-sm:overscroll-contain",
+            )}
           >
-            {t("common.raw")}
-          </Link>
-          {shareKey && !readOnly ? (
-            <div className="mt-2">
-              <PublicSharePanel slug={slug} shareKey={shareKey} />
-            </div>
-          ) : null}
+            <h1 className="truncate text-[11px] font-semibold leading-snug text-zinc-900 sm:text-xs dark:text-zinc-50">
+              {displayName}
+            </h1>
+            {readOnly ? (
+              <p className="mt-1 text-[10px] font-medium text-emerald-800 dark:text-emerald-300">
+                {t("publicShare.readOnlyBadge")}
+              </p>
+            ) : (
+              <p className="mt-1 text-[10px] leading-snug text-zinc-600 dark:text-zinc-300">
+                {t("common.saveShortcut")}
+              </p>
+            )}
+            {!readOnly && busy ? (
+              <p className="mt-1.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400">{t("common.saving")}</p>
+            ) : !readOnly && dirty ? (
+              <p className="mt-1.5 text-[10px] font-medium text-amber-800 dark:text-amber-300">
+                {t("common.unsavedChanges")}
+              </p>
+            ) : null}
+            <Link
+              href={rawHref}
+              className="mt-2 inline-block text-[10px] font-medium text-zinc-700 underline-offset-2 hover:underline dark:text-zinc-200"
+            >
+              {t("common.raw")}
+            </Link>
+            {shareKey && !readOnly ? (
+              <div className="mt-2">
+                <PublicSharePanel slug={slug} shareKey={shareKey} />
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {!readOnly ? (
-        <div className={cn(layoutModeBarOuter, hideFloatingMobile && "max-sm:hidden")} aria-live="polite">
+      {!readOnly && !hideFloatingUi ? (
+        <div className={layoutModeBarOuter} aria-live="polite">
           <nav className={layoutModeBarInner} aria-label={t("mdViewer.layoutAria")}>
             {layoutTabs.map(({ id, label }) => (
               <button
@@ -285,8 +288,8 @@ export function MdViewerWorkspace({
         </div>
       ) : null}
 
-      {!readOnly && saveToastPhase !== "hidden" ? (
-        <div className={cn(saveToastOuter, hideFloatingMobile && "max-sm:hidden")} aria-live="polite">
+      {!readOnly && saveToastPhase !== "hidden" && !hideFloatingUi ? (
+        <div className={saveToastOuter} aria-live="polite">
           <div
             className={cn(
               glassCard,
@@ -307,10 +310,20 @@ export function MdViewerWorkspace({
 
       <div
         className={cn(
-          "flex min-h-0 min-w-0 flex-1 flex-col min-h-[calc(100svh-11rem)]",
-          hideFloatingMobile ? "max-sm:min-h-[calc(100svh-0.5rem)]" : "max-sm:min-h-[calc(100svh-6rem)]",
-          readOnly ? "pm-mdviewer-pad-t-readonly" : "pm-mdviewer-pad-t",
-          "pm-viewer-pad-b",
+          "flex min-h-0 min-w-0 flex-1 flex-col",
+          anonymousPublicMd
+            ? "min-h-[calc(100svh-0.5rem)] pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+            : hideFloatingUi
+              ? "min-h-[calc(100svh-0.5rem)]"
+              : rawDocHrefBase === "public"
+                ? "min-h-[calc(100svh-7rem)] max-sm:min-h-[calc(100svh-5.5rem)]"
+                : "min-h-[calc(100svh-11rem)] max-sm:min-h-[calc(100svh-6rem)]",
+          !anonymousPublicMd && (readOnly ? "pm-mdviewer-pad-t-readonly" : "pm-mdviewer-pad-t"),
+          anonymousPublicMd
+            ? "pt-[max(0.5rem,env(safe-area-inset-top))]"
+            : rawDocHrefBase === "public"
+              ? "pm-pdf-viewer-pad-b"
+              : "pm-viewer-pad-b",
         )}
       >
         {(() => {

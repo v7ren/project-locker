@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 const STORAGE_KEY = "pm-floating-ui-hidden";
 
 type ViewerChromeContextValue = {
-  /** When true, fixed overlays (nav pills, theme, MdViewer chrome) are hidden on small screens only. */
+  /** When true, fixed overlays (nav pills, theme, MdViewer / doc chrome) are hidden. Dashboard ignores this. */
   floatingUiHidden: boolean;
   setFloatingUiHidden: (hidden: boolean) => void;
   toggleFloatingUiHidden: () => void;

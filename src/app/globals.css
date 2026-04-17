@@ -68,19 +68,34 @@ body {
   }
 }
 
-/** Project viewer: when floating chrome is hidden on phones, drop extra scroll padding. */
+/**
+ * PDF doc viewer: clearance for fixed bottom breadcrumb + safe area.
+ * Keep this tight — extra empty space reads as a “footer” bar beside the iframe.
+ */
 @layer utilities {
-  @media (max-width: 639px) {
-    html[data-pm-floating-ui="hidden"] .pm-viewer-pad-b {
-      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  .pm-pdf-viewer-pad-b {
+    padding-bottom: max(3.75rem, calc(env(safe-area-inset-bottom) + 3rem));
+  }
+  @media (min-width: 640px) {
+    .pm-pdf-viewer-pad-b {
+      padding-bottom: max(3.25rem, calc(env(safe-area-inset-bottom) + 2.5rem));
     }
+  }
 
-    html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t {
-      padding-top: 0.5rem;
-    }
+}
 
-    html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t-readonly {
-      padding-top: 0.5rem;
-    }
+/** When floating chrome is hidden, drop extra scroll padding (all viewports). */
+@layer utilities {
+  html[data-pm-floating-ui="hidden"] .pm-viewer-pad-b {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  html[data-pm-floating-ui="hidden"] .pm-pdf-viewer-pad-b {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t,
+  html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t-readonly {
+    padding-top: 0.5rem;
   }
 }

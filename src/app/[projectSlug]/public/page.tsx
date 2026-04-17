@@ -35,5 +35,5 @@ export default async function PublicProjectHome({ params }: Props) {
     return <ProjectCustomTsxPreview source={tsx} variant="fullscreen" />;
   }
 
-  return <ProjectHomeLanding slug={meta.slug} name={meta.name} />;
+  return <ProjectHomeLanding slug={meta.slug} name={meta.name} publicVisitor />;
 }

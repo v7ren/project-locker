@@ -1,6 +1,6 @@
 import { MdViewerWorkspaceLoader } from "@/components/mdviewer-workspace-loader";
 import { isPathPublic } from "@/lib/public-share";
-import { markdownWorkspaceHref } from "@/lib/doc-paths";
+import { markdownWorkspaceHref, segmentsToDocsRelativePath } from "@/lib/doc-paths";
 import { notFound, redirect } from "next/navigation";
 import {
   isSafeRelativeSegments,
@@ -25,8 +25,8 @@ export default async function PublicMarkdownPage({ params }: Props) {
     notFound();
   }
 
-  const relativePath = segments.join("/");
-  const lower = (segments[segments.length - 1] ?? "").toLowerCase();
+  const relativePath = segmentsToDocsRelativePath(segments);
+  const lower = (relativePath.split("/").pop() ?? "").toLowerCase();
   if (!lower.endsWith(".md") && !lower.endsWith(".markdown")) {
     notFound();
   }

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
+import path from "node:path";
+import { encodeDocsPathTrail, segmentsToDocsRelativePath } from "@/lib/doc-paths";
 import {
   isSafeRelativeSegments,
   projectExists,
-  resolveDocsFile,
+  resolveDocFilePath,
 } from "@/lib/projects";
 
 function mimeFor(filename: string): string {
@@ -30,25 +32,20 @@ export async function GET(request: Request, context: RouteCtx) {
     return new NextResponse("Bad path", { status: 400 });
   }
 
-  const filePath = resolveDocsFile(projectSlug, segments);
-  let stat: Awaited<ReturnType<typeof fs.stat>>;
-  try {
-    stat = await fs.stat(filePath);
-  } catch {
-    return new NextResponse("Not found", { status: 404 });
-  }
-  if (!stat.isFile()) {
+  const rel = segmentsToDocsRelativePath(segments);
+  const filePath = await resolveDocFilePath(projectSlug, rel);
+  if (!filePath) {
     return new NextResponse("Not found", { status: 404 });
   }
 
   const buf = await fs.readFile(filePath);
-  const basename = segments[segments.length - 1] ?? "";
+  const basename = path.basename(filePath);
   const lower = basename.toLowerCase();
   const url = new URL(request.url);
   const raw = url.searchParams.get("raw") === "1";
 
   if ((lower.endsWith(".md") || lower.endsWith(".markdown")) && !raw) {
-    const enc = segments.map((s) => encodeURIComponent(s)).join("/");
+    const enc = encodeDocsPathTrail(rel);
     const target = new URL(`/${projectSlug}/md/${enc}`, url.origin);
     return NextResponse.redirect(target, 307);
   }

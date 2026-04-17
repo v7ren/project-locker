@@ -32,7 +32,7 @@ export function BreadcrumbTrail({ items, className }: Props) {
             <BreadcrumbItem className="max-w-[40vw] shrink truncate sm:max-w-[12rem]">
               {item.href ? (
                 <BreadcrumbLink asChild>
-                  <Link href={item.href} className="block truncate">
+                  <Link href={item.href} prefetch={false} className="block truncate">
                     {item.label}
                   </Link>
                 </BreadcrumbLink>

@@ -1,6 +1,8 @@
 import { DocumentViewerPageBody } from "@/components/document-viewer-page-body";
-import { docFileKind } from "@/lib/doc-file-kind";
-import { documentViewerHref } from "@/lib/doc-paths";
+import { documentViewerHref, segmentsToDocsRelativePath } from "@/lib/doc-paths";
+import { translate } from "@/lib/i18n/messages";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
+import { publicSharedMarkdownHref } from "@/lib/public-share-urls";
 import { isPathPublic } from "@/lib/public-share";
 import { publicSharedDocServeHref } from "@/lib/public-share-urls";
 import {
@@ -27,11 +29,10 @@ export default async function PublicDocumentViewerPage({ params }: Props) {
     notFound();
   }
 
-  const relativePath = segments.join("/");
-  const lower = (segments[segments.length - 1] ?? "").toLowerCase();
+  const relativePath = segmentsToDocsRelativePath(segments);
+  const lower = (relativePath.split("/").pop() ?? "").toLowerCase();
   if (lower.endsWith(".md") || lower.endsWith(".markdown")) {
-    const enc = relativePath.split("/").map(encodeURIComponent).join("/");
-    redirect(`/${meta.slug}/public/md/${enc}`);
+    redirect(publicSharedMarkdownHref(meta.slug, relativePath));
   }
 
   if (!(await isDocFile(meta.slug, relativePath))) {
@@ -44,9 +45,16 @@ export default async function PublicDocumentViewerPage({ params }: Props) {
   }
 
   const fileUrl = publicSharedDocServeHref(meta.slug, relativePath);
-  const kind = docFileKind(relativePath);
+  const locale = await getRequestLocale();
 
   return (
-    <DocumentViewerPageBody slug={meta.slug} relativePath={relativePath} fileUrl={fileUrl} kind={kind} />
+    <DocumentViewerPageBody
+      slug={meta.slug}
+      relativePath={relativePath}
+      fileUrl={fileUrl}
+      readOnlyPublic
+      rawLabel={translate(locale, "common.raw")}
+      embedNoteLabel={translate(locale, "docPage.embedNote")}
+    />
   );
 }
