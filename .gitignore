@@ -24,6 +24,8 @@
 .DS_Store
 *.pem
 
+# Do not add `/data` here — `data/projects/...` is tracked for sample content and deploys.
+
 # debug
 npm-debug.log*
 yarn-debug.log*
