@@ -1,0 +1,62 @@
+import { NextResponse } from "next/server";
+import fs from "node:fs/promises";
+import {
+  isSafeRelativeSegments,
+  projectExists,
+  resolveDocsFile,
+} from "@/lib/projects";
+
+function mimeFor(filename: string): string {
+  const n = filename.toLowerCase();
+  if (n.endsWith(".pdf")) return "application/pdf";
+  if (n.endsWith(".md") || n.endsWith(".markdown")) return "text/markdown";
+  if (n.endsWith(".html") || n.endsWith(".htm")) return "text/html";
+  if (n.endsWith(".png")) return "image/png";
+  if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+  if (n.endsWith(".txt")) return "text/plain; charset=utf-8";
+  return "application/octet-stream";
+}
+
+type RouteCtx = {
+  params: Promise<{ projectSlug: string; path: string[] }>;
+};
+
+export async function GET(request: Request, context: RouteCtx) {
+  const { projectSlug, path: segments } = await context.params;
+  if (!(await projectExists(projectSlug))) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+  if (!isSafeRelativeSegments(segments)) {
+    return new NextResponse("Bad path", { status: 400 });
+  }
+
+  const filePath = resolveDocsFile(projectSlug, segments);
+  let stat: Awaited<ReturnType<typeof fs.stat>>;
+  try {
+    stat = await fs.stat(filePath);
+  } catch {
+    return new NextResponse("Not found", { status: 404 });
+  }
+  if (!stat.isFile()) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
+  const buf = await fs.readFile(filePath);
+  const basename = segments[segments.length - 1] ?? "";
+  const lower = basename.toLowerCase();
+  const url = new URL(request.url);
+  const raw = url.searchParams.get("raw") === "1";
+
+  if ((lower.endsWith(".md") || lower.endsWith(".markdown")) && !raw) {
+    const enc = segments.map((s) => encodeURIComponent(s)).join("/");
+    const target = new URL(`/${projectSlug}/md/${enc}`, url.origin);
+    return NextResponse.redirect(target, 307);
+  }
+
+  return new NextResponse(buf, {
+    headers: {
+      "content-type": mimeFor(basename),
+      "cache-control": "private, max-age=0",
+    },
+  });
+}

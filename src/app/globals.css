@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Include project-uploaded home TSX/HTML so Tailwind generates those utilities */
+@source "../../data/projects/**/*.{tsx,jsx,html}";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+html.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +22,65 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/**
+ * Project viewer pages: fixed bottom breadcrumb + optional dock + safe area.
+ * Replaces a flat pb-36 on phones where chrome stacks taller.
+ */
+@layer utilities {
+  .pm-viewer-pad-b {
+    padding-bottom: max(12.5rem, calc(env(safe-area-inset-bottom) + 11rem));
+  }
+  @media (min-width: 640px) {
+    .pm-viewer-pad-b {
+      padding-bottom: 9rem;
+    }
+  }
+}
+
+/**
+ * MdViewer main column: room under fixed top-right + left path card + (when present) view/split/edit bar.
+ */
+@layer utilities {
+  .pm-mdviewer-pad-t {
+    padding-top: 0.5rem;
+  }
+  @media (max-width: 639px) {
+    .pm-mdviewer-pad-t {
+      padding-top: max(9.75rem, calc(env(safe-area-inset-top) + 8.5rem));
+    }
+  }
+
+  .pm-mdviewer-pad-t-readonly {
+    padding-top: 0.5rem;
+  }
+  @media (max-width: 639px) {
+    .pm-mdviewer-pad-t-readonly {
+      padding-top: max(6.5rem, calc(env(safe-area-inset-top) + 5.5rem));
+    }
+  }
+}
+
+/** Project viewer: when floating chrome is hidden on phones, drop extra scroll padding. */
+@layer utilities {
+  @media (max-width: 639px) {
+    html[data-pm-floating-ui="hidden"] .pm-viewer-pad-b {
+      padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    }
+
+    html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t {
+      padding-top: 0.5rem;
+    }
+
+    html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t-readonly {
+      padding-top: 0.5rem;
+    }
+  }
 }
