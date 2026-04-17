@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 export type ProjectMeta = {
@@ -7,10 +8,34 @@ export type ProjectMeta = {
   createdAt: string;
 };
 
-const DATA_ROOT = path.join(process.cwd(), "data", "projects");
+/**
+ * Where project folders (`{slug}/project.json`, `docs/`, `home/`) live.
+ *
+ * - Local default: `./data/projects` (same as before).
+ * - **Vercel:** the serverless filesystem is not writable under `process.cwd()`; when `VERCEL=1`
+ *   and `PROJECT_DATA_ROOT` is unset, we use a subdirectory of `os.tmpdir()` (ephemeral — use
+ *   `PROJECT_DATA_ROOT` or attach persistent storage for production).
+ */
+function resolveProjectsDataRoot(): string {
+  const explicit = process.env.PROJECT_DATA_ROOT?.trim();
+  if (explicit) {
+    return path.isAbsolute(explicit) ? explicit : path.join(process.cwd(), explicit);
+  }
+  if (process.env.VERCEL === "1") {
+    return path.join(os.tmpdir(), "projectmanagement-dashboard", "projects");
+  }
+  return path.join(process.cwd(), "data", "projects");
+}
+
+let cachedDataRoot: string | null = null;
+
+function dataRoot(): string {
+  cachedDataRoot ??= resolveProjectsDataRoot();
+  return cachedDataRoot;
+}
 
 export function getDataRoot(): string {
-  return DATA_ROOT;
+  return dataRoot();
 }
 
 export function slugify(name: string): string {
@@ -23,16 +48,20 @@ export function slugify(name: string): string {
 }
 
 function projectDir(slug: string): string {
-  return path.join(DATA_ROOT, slug);
+  return path.join(dataRoot(), slug);
 }
 
 export async function ensureDataRoot(): Promise<void> {
-  await fs.mkdir(DATA_ROOT, { recursive: true });
+  await fs.mkdir(dataRoot(), { recursive: true });
 }
 
 export async function listProjects(): Promise<ProjectMeta[]> {
-  await ensureDataRoot();
-  const entries = await fs.readdir(DATA_ROOT, { withFileTypes: true });
+  try {
+    await ensureDataRoot();
+  } catch {
+    return [];
+  }
+  const entries = await fs.readdir(dataRoot(), { withFileTypes: true });
   const projects: ProjectMeta[] = [];
   for (const e of entries) {
     if (!e.isDirectory()) continue;

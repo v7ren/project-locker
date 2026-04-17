@@ -28,7 +28,12 @@ export default async function RootLayout({
 }>) {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
-  const sessionUser = await readSessionFromTokenValue(sessionToken);
+  let sessionUser: Awaited<ReturnType<typeof readSessionFromTokenValue>> = null;
+  try {
+    sessionUser = await readSessionFromTokenValue(sessionToken);
+  } catch {
+    sessionUser = null;
+  }
 
   return (
     <html
