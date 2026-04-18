@@ -109,7 +109,7 @@ export function ProjectCustomTsxPreview({
 
   if (variant === "fullscreen") {
     return (
-      <div className="min-h-screen w-full">
+      <div className="min-h-screen w-full text-zinc-950 dark:text-zinc-950">
         <LiveProvider
           code={code}
           scope={scope}
@@ -142,7 +142,7 @@ export function ProjectCustomTsxPreview({
         <p className="border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
           Preview
         </p>
-        <div className="min-h-[min(70vh,720px)] w-full overflow-auto bg-white p-2 dark:bg-zinc-950">
+        <div className="min-h-[min(70vh,720px)] w-full overflow-auto bg-white p-2 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-950">
           <LiveProvider
             code={code}
             scope={scope}
