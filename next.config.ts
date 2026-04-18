@@ -39,6 +39,9 @@ const allowedDevOrigins = parseAllowedDevOrigins();
 const nextConfig: NextConfig = {
   ...(allowedDevOrigins ? { allowedDevOrigins } : {}),
   transpilePackages: ["react-live", "sucrase", "prism-react-renderer", "use-editable"],
+  async rewrites() {
+    return [{ source: "/favicon.ico", destination: "/icon" }];
+  },
 };
 
 export default nextConfig;

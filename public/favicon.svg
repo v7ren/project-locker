@@ -1,73 +1,26 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="24" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="#0A0A0C" />
-  <circle cx="256" cy="184" r="64" fill="#FFFFFF" opacity="0.1" filter="url(#glow)" />
-  <g transform="translate(256, 256)">
-    <path
-      d="M 0 120 L 0 -120"
-      stroke="#FFFFFF"
-      stroke-width="6"
-      stroke-dasharray="12 12"
-      stroke-opacity="0.3"
-      stroke-linecap="round"
-    />
-    <rect
-      x="-64"
-      y="-64"
-      width="128"
-      height="128"
-      rx="28"
-      transform="translate(0, 72) rotate(45)"
-      fill="#0A0A0C"
-      stroke="#FFFFFF"
-      stroke-width="10"
-      stroke-opacity="0.15"
-    />
-    <rect
-      x="-64"
-      y="-64"
-      width="128"
-      height="128"
-      rx="28"
-      transform="translate(0, 0) rotate(45)"
-      fill="#0A0A0C"
-      stroke="#FFFFFF"
-      stroke-width="10"
-      stroke-opacity="0.4"
-    />
-    <rect
-      x="-64"
-      y="-64"
-      width="128"
-      height="128"
-      rx="28"
-      transform="translate(0, -72) rotate(45)"
-      fill="#0A0A0C"
-      stroke="#FFFFFF"
-      stroke-width="12"
-      stroke-opacity="1"
-    />
-    <circle cx="0" cy="-72" r="16" fill="#FFFFFF" />
-    <path
-      d="M -90 0 L -140 0"
-      stroke="#FFFFFF"
-      stroke-width="6"
-      stroke-opacity="0.4"
-      stroke-linecap="round"
-    />
-    <circle cx="-140" cy="0" r="6" fill="#FFFFFF" fill-opacity="0.4" />
-    <path
-      d="M 90 72 L 140 72"
-      stroke="#FFFFFF"
-      stroke-width="6"
-      stroke-opacity="0.15"
-      stroke-linecap="round"
-    />
-    <circle cx="140" cy="72" r="6" fill="#FFFFFF" fill-opacity="0.15" />
+  <!-- 深色極簡背景 -->
+  <rect width="512" height="512" rx="128" fill="#0A0A0C" />
+
+  <!-- 主體圖形群組 (放大並置中) -->
+  <g transform="translate(256, 276)">
+    
+    <!-- 底層節點 (Step 1) -->
+    <rect x="-80" y="-80" width="160" height="160" rx="36" 
+          transform="translate(0, 80) rotate(45)" 
+          fill="#0A0A0C" stroke="#FFFFFF" stroke-width="24" stroke-opacity="0.2" />
+
+    <!-- 中層節點 (Step 2) -->
+    <rect x="-80" y="-80" width="160" height="160" rx="36" 
+          transform="translate(0, 0) rotate(45)" 
+          fill="#0A0A0C" stroke="#FFFFFF" stroke-width="24" stroke-opacity="0.5" />
+
+    <!-- 頂層節點 (Step 3) -->
+    <rect x="-80" y="-80" width="160" height="160" rx="36" 
+          transform="translate(0, -80) rotate(45)" 
+          fill="#0A0A0C" stroke="#FFFFFF" stroke-width="28" stroke-opacity="1" />
+          
+    <!-- 頂層核心點 -->
+    <circle cx="0" cy="-80" r="24" fill="#FFFFFF" />
   </g>
 </svg>

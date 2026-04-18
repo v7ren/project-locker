@@ -5,6 +5,14 @@ import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
 import { attachApiCorsIfAllowed, maybeApiCorsPreflight } from "@/lib/cors";
 
+/** Tab / metadata fetches must not hit the login redirect (cookies can be missing or SVG unsupported). */
+function isPublicAssetPath(pathname: string): boolean {
+  if (pathname === "/icon" || pathname === "/apple-icon") return true;
+  if (pathname === "/favicon.ico" || pathname === "/favicon.svg") return true;
+  if (/^\/[^/]+\.(?:ico|svg|png|jpg|jpeg|gif|webp)$/i.test(pathname)) return true;
+  return false;
+}
+
 function isPublicViewerPath(pathname: string): boolean {
   const parts = pathname.split("/").filter(Boolean);
   if (parts.length < 2) return false;
@@ -21,6 +29,10 @@ export async function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  if (isPublicAssetPath(pathname)) {
+    return attachApiCorsIfAllowed(request, NextResponse.next());
+  }
+
   if (isPublicViewerPath(pathname)) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
@@ -57,6 +69,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
