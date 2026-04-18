@@ -1,13 +1,5 @@
 import type { NextConfig } from "next";
 
-/**
- * Hostnames allowed to load Next dev assets (`/_next/*`, etc.) cross-origin.
- * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
- *
- * Env:
- * - `NEXT_ALLOWED_DEV_ORIGINS` — comma-separated hosts or full URLs (e.g. `v7ren.xyz` or `https://v7ren.xyz,https://3001.v7ren.xyz`).
- * - If unset, hostnames are also taken from `DOMAIN` when it looks like a URL (same as CORS `DOMAIN`).
- */
 function parseAllowedDevOrigins(): string[] | undefined {
   const out = new Set<string>();
 

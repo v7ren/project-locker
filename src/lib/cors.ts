@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-/** Public site origin, e.g. `https://v7ren.xyz` — must match `Origin` header exactly. */
 export function getConfiguredDomain(): string | undefined {
   const d = process.env.DOMAIN?.trim();
   return d && d.length > 0 ? d : undefined;

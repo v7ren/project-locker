@@ -19,7 +19,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Project docs",
-  description: "Per-project home pages and docs with stable URL paths",
+  description:
+    "For PMs and small teams: per-project Markdown, PDFs, and docs with stable URL paths",
 };
 
 export default async function RootLayout({
