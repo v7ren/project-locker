@@ -61,6 +61,12 @@ export type MessageKey =
   | "dash.customOnDiskSuffix"
   | "dash.docsSectionTitle"
   | "dash.docsSectionDesc"
+  | "dash.deleteSectionTitle"
+  | "dash.deleteSectionDesc"
+  | "dash.deleteProject"
+  | "dash.deleteProjectConfirm"
+  | "dash.deletingProject"
+  | "dash.deleteProjectFailed"
   | "docsPage.title"
   | "docsPage.subtitleLead"
   | "docsPage.subtitleTrail"
@@ -225,6 +231,14 @@ const en: Record<MessageKey, string> = {
   "dash.customOnDiskSuffix": "to see it.",
   "dash.docsSectionTitle": "Docs",
   "dash.docsSectionDesc": "Files are served at {{path}}.",
+  "dash.deleteSectionTitle": "Delete project",
+  "dash.deleteSectionDesc":
+    "Remove this project from disk, including all docs and home uploads. This cannot be undone.",
+  "dash.deleteProject": "Delete project",
+  "dash.deleteProjectConfirm":
+    "Delete “{{name}}” (/{{slug}}) and all of its files? This cannot be undone.",
+  "dash.deletingProject": "Deleting…",
+  "dash.deleteProjectFailed": "Could not delete project",
   "docsPage.title": "Documents",
   "docsPage.subtitleLead":
     "Browse files across projects. Each tile opens the public doc URL. Add or remove files from each project’s",
@@ -401,6 +415,13 @@ const zhTW: Record<MessageKey, string> = {
   "dash.customOnDiskSuffix": "檢視。",
   "dash.docsSectionTitle": "文件",
   "dash.docsSectionDesc": "檔案網址為 {{path}}。",
+  "dash.deleteSectionTitle": "刪除專案",
+  "dash.deleteSectionDesc": "從磁碟移除此專案，包含所有文件與首頁上傳。此動作無法復原。",
+  "dash.deleteProject": "刪除專案",
+  "dash.deleteProjectConfirm":
+    "要刪除「{{name}}」（/{{slug}}）及其所有檔案嗎？此動作無法復原。",
+  "dash.deletingProject": "刪除中…",
+  "dash.deleteProjectFailed": "無法刪除專案",
   "docsPage.title": "文件庫",
   "docsPage.subtitleLead": "瀏覽各專案檔案。每個圖磚會開啟公開文件連結。新增或刪除檔案請到各專案的",
   "docsPage.subtitleTrail": "。",

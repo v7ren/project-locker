@@ -41,6 +41,19 @@ export function slugify(name: string): string {
   return base.length > 0 ? base : "project";
 }
 
+/** Slugs created by this app are lowercase `[a-z0-9-]+` (single path segment). */
+const SAFE_PROJECT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function isSafeProjectSlug(slug: string): boolean {
+  return (
+    slug.length > 0 &&
+    slug.length <= 200 &&
+    !slug.includes("/") &&
+    !slug.includes("\\") &&
+    SAFE_PROJECT_SLUG_RE.test(slug)
+  );
+}
+
 function projectDir(slug: string): string {
   return path.join(dataRoot(), slug);
 }
@@ -104,6 +117,17 @@ export async function createProject(name: string): Promise<ProjectMeta> {
     "utf8",
   );
   return meta;
+}
+
+/** Removes the project directory (docs, home, project.json). Slug must pass {@link isSafeProjectSlug}. */
+export async function deleteProject(slug: string): Promise<void> {
+  if (!isSafeProjectSlug(slug)) {
+    throw new Error("Invalid slug");
+  }
+  if (!(await projectExists(slug))) {
+    throw new Error("Not found");
+  }
+  await fs.rm(projectDir(slug), { recursive: true, force: true });
 }
 
 export function docsDir(slug: string): string {

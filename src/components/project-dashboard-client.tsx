@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { DocsWorkspace } from "@/components/docs-workspace";
 import { ProjectHomeUpload } from "@/components/project-home-upload";
 import { useTranslations } from "@/lib/i18n/locale-provider";
@@ -19,6 +21,35 @@ export function ProjectDashboardClient({
   initialTab: "home" | "docs";
 }) {
   const { t } = useTranslations();
+  const router = useRouter();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  async function onDeleteProject() {
+    if (
+      !window.confirm(
+        t("dash.deleteProjectConfirm", { name: meta.name, slug: meta.slug }),
+      )
+    ) {
+      return;
+    }
+    setDeleteError(null);
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/projects/${encodeURIComponent(meta.slug)}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok) {
+        setDeleteError(data.error ?? t("dash.deleteProjectFailed"));
+        return;
+      }
+      router.push("/");
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-5xl flex-1 px-4 py-6 pb-36 sm:px-6 sm:py-8">
@@ -94,6 +125,34 @@ export function ProjectDashboardClient({
           </section>
         )}
       </div>
+
+      <section
+        className="mt-12 rounded-xl border border-red-200/80 bg-red-50/50 px-4 py-5 sm:px-5 dark:border-red-900/50 dark:bg-red-950/20"
+        aria-labelledby="dash-delete-heading"
+      >
+        <h2
+          id="dash-delete-heading"
+          className="text-base font-semibold text-red-900 dark:text-red-200"
+        >
+          {t("dash.deleteSectionTitle")}
+        </h2>
+        <p className="mt-1 text-sm text-red-800/90 dark:text-red-300/90">
+          {t("dash.deleteSectionDesc")}
+        </p>
+        {deleteError ? (
+          <p className="mt-2 text-sm text-red-700 dark:text-red-400">{deleteError}</p>
+        ) : null}
+        <div className="mt-4">
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={() => void onDeleteProject()}
+            className="rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 shadow-sm transition hover:bg-red-50 disabled:opacity-60 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100 dark:hover:bg-red-950/70"
+          >
+            {deleting ? t("dash.deletingProject") : t("dash.deleteProject")}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
