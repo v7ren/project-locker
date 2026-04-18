@@ -24,7 +24,9 @@
 .DS_Store
 *.pem
 
-# Do not add `/data` here — `data/projects/...` is tracked for sample content and deploys.
+# Ignore everything under `data/` except `data/projects/` — that tree is scanned by Tailwind
+# `@source` during `next build` (Railway/CI). If it is missing at build time, uploaded `custom.tsx`
+# utilities are stripped from CSS and the live page looks unstyled / wrong greys.
 
 # debug
 npm-debug.log*
@@ -38,5 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-/data
+/data/*
+!/data/projects/
 .env.local

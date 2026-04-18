@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Include project-uploaded home TSX/HTML so Tailwind generates those utilities */
+/* Project home TSX/HTML: utilities must exist at `next build` time — keep paths in git (not only on disk). */
 @source "../../data/projects/**/*.{tsx,jsx,html}";
 
 :root {
