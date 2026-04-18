@@ -20,7 +20,6 @@ function manifestPath(slug: string): string {
   return path.join(getDataRoot(), slug, MANIFEST);
 }
 
-/** Validates `home` | `md/...` | `doc/...` with safe segments. */
 export function isValidShareKey(key: string): boolean {
   const k = normalizeShareKey(key);
   if (k === "home") return true;
@@ -58,10 +57,7 @@ export async function writePublicShareManifest(slug: string, manifest: PublicSha
   await fs.writeFile(manifestPath(slug), JSON.stringify(clean, null, 2), "utf8");
 }
 
-/**
- * Map a share key to a stable manifest key: `home`, or `doc|md/` + docs-relative path as resolved on disk
- * (fixes NFC/NFD and spelling variants from `resolveDocFilePath`).
- */
+/** Canonical manifest key via `resolveDocFilePath` (Unicode path variants). */
 async function resolveShareKeyToCanonical(slug: string, key: string): Promise<string | null> {
   const k = normalizeShareKey(key);
   if (k === "home") return "home";
@@ -112,7 +108,6 @@ export async function canEnablePublicShare(slug: string, key: string): Promise<b
   return false;
 }
 
-/** Pathname (no origin) for a working public viewer URL, using the resolved on-disk doc path. */
 export async function publicShareViewerPathForKey(slug: string, rawKey: string): Promise<string | null> {
   const k = normalizeShareKey(rawKey);
   if (!isValidShareKey(k)) return null;
@@ -148,5 +143,4 @@ export async function setPathPublic(slug: string, key: string, makePublic: boole
   await writePublicShareManifest(slug, { paths: [...set] });
 }
 
-// Re-export normalize for API route
 export { normalizeShareKey } from "@/lib/public-share-urls";

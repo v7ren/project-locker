@@ -2,7 +2,6 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
-/** Editor chrome tracks page `background` / `foreground` (see `mdviewer-preview-scoped-css.ts`). */
 const lightBg = "var(--background)";
 const lightFg = "var(--foreground)";
 const lightMuted = "#71717a";
@@ -11,7 +10,6 @@ const lightLineHi = "#f4f4f5";
 const lightSelection = "#d4d4d8";
 const lightLink = "#2563eb";
 
-/** Dark editor surface matches `html.dark` page tokens. */
 const darkBg = "var(--background)";
 const darkFg = "var(--foreground)";
 const darkMuted = "#a1a1aa";
@@ -157,7 +155,6 @@ const mdViewerEditorDarkHighlight = HighlightStyle.define(
   { themeType: "dark", all: { color: darkFg } },
 );
 
-/** CodeMirror extensions aligned with `.mdviewer-preview` light/dark surfaces. */
 export function mdViewerEditorThemeExtensions(theme: "light" | "dark") {
   return [
     theme === "dark" ? mdViewerEditorDarkTheme : mdViewerEditorLightTheme,

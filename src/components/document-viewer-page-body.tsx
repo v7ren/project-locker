@@ -12,17 +12,11 @@ type Props = {
   slug: string;
   relativePath: string;
   fileUrl: string;
-  /** Resolved on the server so SSR and the first client paint match (avoids locale hydration issues). */
   rawLabel: string;
   embedNoteLabel: string;
-  /** When set, owners see “share as public” controls (not shown on anonymous public viewer pages). */
   shareKey?: string;
-  /**
-   * Reserved for layouts that need different bottom spacing from the default doc viewer.
-   * PDF uses full-height preview; floating breadcrumb/dock sit above the content (`fixed`).
-   */
+  /** PDF full-height layout: extra bottom inset under fixed breadcrumb/dock. */
   breadcrumbOnlyBottomInset?: boolean;
-  /** Anonymous public document view: no header, raw links, or share UI — content only. */
   readOnlyPublic?: boolean;
 };
 

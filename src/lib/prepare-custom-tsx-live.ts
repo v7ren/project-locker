@@ -31,10 +31,7 @@ function isStripImportLine(line: string): { lucideNames: string[] } | boolean {
   return false;
 }
 
-/**
- * Turns uploaded `custom.tsx` into react-live `noInline` code: no import lines
- * (eval has no require), `export default function Name` → `function Name` + `render(<Name />)`.
- */
+/** Strip imports and wrap `export default` as react-live `noInline` output (no `require` in eval). */
 export function prepareCustomTsxForLive(source: string): PreparedCustomTsx {
   const lines = source.split(/\r?\n/);
   const kept: string[] = [];

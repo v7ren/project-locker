@@ -2,11 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-/**
- * Loads react-live + sucrase only in the browser. Their CommonJS entry uses
- * `require`, which breaks under Turbopack’s RSC/SSR evaluation for sibling
- * routes (e.g. /[slug]/dashboard) when the heavy module is statically linked.
- */
+// Client-only: react-live / sucrase rely on `require` and must stay off the RSC graph.
 export const ProjectCustomTsxPreview = dynamic(
   () =>
     import("./project-custom-tsx-live").then((m) => m.ProjectCustomTsxPreview),

@@ -26,7 +26,6 @@ function resendHintMessageKey(code: OtpResendHintCode): MessageKey {
 type Props = {
   authConfigured: boolean;
   nextPath: string;
-  /** Populated in development when auth env is incomplete */
   setupIssues?: string[];
 };
 

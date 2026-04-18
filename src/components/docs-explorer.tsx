@@ -37,7 +37,6 @@ type ProjectDocs = {
 
 type Props = {
   projects: ProjectDocs[];
-  /** When set, only this project’s block is expanded by default; others collapsed could be future — for now filter list. */
   filterSlug: string | null;
 };
 

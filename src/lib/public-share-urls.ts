@@ -1,5 +1,3 @@
-/** No Node imports — safe for client components. */
-
 import { encodeDocsPathTrail } from "@/lib/doc-paths";
 
 export function normalizeShareKey(raw: string): string {

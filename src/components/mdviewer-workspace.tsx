@@ -31,7 +31,6 @@ type Props = {
 
 type LayoutMode = "view" | "split" | "edit";
 
-/** Fixed top-center layout chrome — on small screens sits below top-right + left path card. */
 const layoutModeBarOuter =
   "pointer-events-none fixed inset-x-0 top-0 z-[255] flex justify-center px-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.65rem,env(safe-area-inset-top))] pr-[max(0.75rem,env(safe-area-inset-right))] max-sm:top-[8.25rem] max-sm:pt-[max(0.35rem,env(safe-area-inset-top))]";
 const layoutModeBarInner =
@@ -40,7 +39,6 @@ const layoutModeBarInner =
 const glassCard =
   "rounded-xl border border-zinc-200/45 bg-white/40 px-3 py-2 text-xs shadow-md backdrop-blur-md dark:border-zinc-500/35 dark:bg-zinc-950/35";
 
-/** Bottom-right: clears bottom breadcrumb + dock on small screens. */
 const saveToastOuter =
   "pointer-events-none fixed right-0 z-[259] flex justify-end pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] bottom-[max(1rem,env(safe-area-inset-bottom))] max-sm:bottom-[max(11.75rem,calc(env(safe-area-inset-bottom)+10.5rem))]";
 

@@ -8,11 +8,10 @@ import type { AppLocale } from "@/lib/i18n/messages";
 type Props = {
   children: React.ReactNode;
   session?: SessionState;
-  /** Resolved on the server (`getRequestLocale`) so the first client render matches SSR. */
   initialLocale: AppLocale;
 };
 
-/** pacocoursey/next-themes#387 — React 19 dev warning for inline theme script on client */
+// `type: application/json` avoids next-themes injecting an inline script that trips React 19 dev checks.
 const themeScriptProps =
   typeof window === "undefined" ? undefined : ({ type: "application/json" } as const);
 

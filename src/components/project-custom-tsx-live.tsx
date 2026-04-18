@@ -26,7 +26,7 @@ import * as Lucide from "lucide-react";
 import { transform as sucraseTransform } from "sucrase";
 import { prepareCustomTsxForLive } from "@/lib/prepare-custom-tsx-live";
 
-/** Pre-transform so react-live’s second pass sees production-style JSX (no __self → no React 19 dev warning). */
+/** Sucrase JSX in production mode so react-live does not re-inject dev-only `__self` props. */
 function preTransformReactLiveCode(code: string): string {
   return sucraseTransform(code, {
     transforms: ["typescript", "jsx", "imports"],
@@ -37,7 +37,6 @@ function preTransformReactLiveCode(code: string): string {
 
 type Props = {
   source: string;
-  /** `fullscreen` = project home only (no chrome, full viewport). */
   variant?: "fullscreen" | "panel";
 };
 
@@ -45,7 +44,6 @@ function buildScope(lucideNames: string[]): Record<string, unknown> {
   const icons: Record<string, unknown> = {};
   for (const name of lucideNames) {
     const Icon = (Lucide as Record<string, unknown>)[name];
-    // lucide-react icons are forwardRef exotic components (typeof "object"), not plain functions
     if (Icon != null) {
       icons[name] = Icon;
     }

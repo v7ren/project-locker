@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 type Props = {
   slug: string;
   shareKey: string;
-  /** Compact trigger for tight chrome (e.g. MdViewer doc card). */
   triggerClassName?: string;
 };
 

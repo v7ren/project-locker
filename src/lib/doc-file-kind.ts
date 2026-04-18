@@ -12,7 +12,6 @@ export function docFileKind(relativePath: string): DocFileKind {
   return "other";
 }
 
-/** Decode each path segment first so `%2F`-style names and `%20` still classify like on disk. */
 export function docFileKindFromEncodedRelativePath(relativePath: string): DocFileKind {
   const rel = relativePath.trim().replace(/^\/+/, "");
   const joined = rel

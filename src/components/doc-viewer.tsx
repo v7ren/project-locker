@@ -10,7 +10,6 @@ type Props = {
   fileUrl: string;
   kind: DocFileKind;
   displayName: string;
-  /** When true, only the uploaded asset (no hints, card chrome, or extra padding). */
   immersiveChrome?: boolean;
 };
 
@@ -34,11 +33,7 @@ export function DocViewer({ fileUrl, kind, displayName, immersiveChrome = false 
     case "pdf":
       return (
         <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-zinc-950">
-          {/*
-            Native PDF iframes often report a large intrinsic min-height; in a flex column that can
-            overflow past the reserved bottom inset. Absolute-fill + overflow-hidden keeps the
-            surface inside the flex slot. Use explicit Tailwind colors so SSR/CSR class strings match.
-          */}
+          {/* PDF iframe min-height vs flex: absolute fill keeps layout inside the slot */}
           <div className="relative min-h-0 w-full flex-1 overflow-hidden bg-white dark:bg-zinc-950">
             <iframe
               title={displayName}

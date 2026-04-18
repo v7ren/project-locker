@@ -10,7 +10,6 @@ function isDashboardPath(pathname: string): boolean {
   return pathname.includes("/dashboard");
 }
 
-/** Lark-style two-segment look; single control toggles standard vs focus (whole pill is clickable). */
 export function ViewerChromeSegment() {
   const ctx = useViewerChromeOptional();
   const pathname = usePathname() ?? "";

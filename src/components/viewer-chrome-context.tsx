@@ -5,7 +5,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 const STORAGE_KEY = "pm-floating-ui-hidden";
 
 type ViewerChromeContextValue = {
-  /** When true, fixed overlays (nav pills, theme, MdViewer / doc chrome) are hidden. Dashboard ignores this. */
   floatingUiHidden: boolean;
   setFloatingUiHidden: (hidden: boolean) => void;
   toggleFloatingUiHidden: () => void;
@@ -26,7 +25,7 @@ export function ViewerChromeProvider({ children }: { children: ReactNode }) {
         setFloatingUiHiddenState(true);
       }
     } catch {
-      /* ignore */
+      // sessionStorage unavailable
     }
   }, []);
 
@@ -39,7 +38,7 @@ export function ViewerChromeProvider({ children }: { children: ReactNode }) {
         sessionStorage.removeItem(STORAGE_KEY);
       }
     } catch {
-      /* ignore */
+      // sessionStorage unavailable
     }
   }, []);
 
@@ -53,7 +52,7 @@ export function ViewerChromeProvider({ children }: { children: ReactNode }) {
           sessionStorage.removeItem(STORAGE_KEY);
         }
       } catch {
-        /* ignore */
+        // sessionStorage unavailable
       }
       return next;
     });

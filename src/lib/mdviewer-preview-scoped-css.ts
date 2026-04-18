@@ -1,7 +1,4 @@
-/**
- * Scoped styles for live Markdown preview in MdViewer.
- * Targets `.mdviewer-preview` so rules do not leak to the app shell.
- */
+/** Scoped to `.mdviewer-preview` so MdViewer styles do not affect the app shell. */
 export const MDVIEWER_PREVIEW_CSS = `
 .mdviewer-preview {
   -webkit-text-size-adjust: 100%;

@@ -30,7 +30,7 @@ function readStoredLocale(): AppLocale {
     const raw = window.localStorage.getItem(localeStorageKey);
     if (raw === "en" || raw === "zh-TW") return raw;
   } catch {
-    /* ignore */
+    // storage unavailable
   }
   return defaultLocale;
 }
@@ -40,7 +40,7 @@ function writeLocaleCookie(next: AppLocale) {
   try {
     document.cookie = `${localeStorageKey}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
   } catch {
-    /* ignore */
+    // cookie write failed
   }
 }
 
@@ -49,7 +49,6 @@ export function LocaleProvider({
   initialLocale,
 }: {
   children: React.ReactNode;
-  /** From `getRequestLocale()` in root layout so SSR matches the first client render. */
   initialLocale?: AppLocale;
 }) {
   const [locale, setLocaleState] = useState<AppLocale>(
@@ -65,7 +64,7 @@ export function LocaleProvider({
         return;
       }
     } catch {
-      /* ignore */
+      // storage unavailable
     }
     writeLocaleCookie(initialLocale ?? defaultLocale);
   }, [initialLocale]);
@@ -75,7 +74,7 @@ export function LocaleProvider({
     try {
       window.localStorage.setItem(localeStorageKey, next);
     } catch {
-      /* ignore */
+      // storage unavailable
     }
     writeLocaleCookie(next);
   }, []);
@@ -104,7 +103,6 @@ export function useLocaleContext(): LocaleContextValue {
   return ctx;
 }
 
-/** Safe for optional use outside provider (returns default zh-TW strings). */
 export function useTranslations() {
   const ctx = useContext(LocaleContext);
   const locale = ctx?.locale ?? defaultLocale;

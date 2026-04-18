@@ -1,10 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { localeStorageKey, type AppLocale, defaultLocale } from "@/lib/i18n/messages";
 
-/**
- * Locale for SSR and the first client render — same rules as `RootLayout`
- * (`LocaleProvider.initialLocale`), so markup matches after hydration.
- */
+/** Cookie, then Accept-Language, then default — aligned with `LocaleProvider` hydration. */
 export async function getRequestLocale(): Promise<AppLocale> {
   const cookieStore = await cookies();
   const localeCookie = cookieStore.get(localeStorageKey)?.value;

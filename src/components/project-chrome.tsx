@@ -35,8 +35,7 @@ function isPublicViewerPath(pathname: string, slug: string): boolean {
     pathname.startsWith(`/${slug}/public/`)
   );
 }
-/** gugugaga */
-/** Bottom-right: manage docs and dashboard (upload / custom pages). */
+
 function BottomRightProjectDock({ slug }: { slug: string }) {
   const viewerChrome = useViewerChromeOptional();
   const { t } = useTranslations();

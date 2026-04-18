@@ -8,13 +8,7 @@ export type ProjectMeta = {
   createdAt: string;
 };
 
-/**
- * Where project folders (`{slug}/project.json`, `docs/`, `home/`) live.
- *
- * Default: `./data/projects` (bundled or bind-mounted content under the app directory).
- * Override with **`PROJECT_DATA_ROOT`** (absolute path, or relative to `process.cwd()`) for a
- * different data directory or writable volume.
- */
+/** Project roots: `data/projects` or `PROJECT_DATA_ROOT` (absolute or cwd-relative). */
 function resolveProjectsDataRoot(): string {
   const explicit = process.env.PROJECT_DATA_ROOT?.trim();
   if (explicit) {
@@ -23,7 +17,6 @@ function resolveProjectsDataRoot(): string {
   return path.join(process.cwd(), "data", "projects");
 }
 
-/** `./data/projects` unless `PROJECT_DATA_ROOT` is set (same default as early shipped revisions). */
 function dataRoot(): string {
   return resolveProjectsDataRoot();
 }
@@ -41,7 +34,6 @@ export function slugify(name: string): string {
   return base.length > 0 ? base : "project";
 }
 
-/** Slugs created by this app are lowercase `[a-z0-9-]+` (single path segment). */
 const SAFE_PROJECT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function isSafeProjectSlug(slug: string): boolean {
@@ -119,7 +111,6 @@ export async function createProject(name: string): Promise<ProjectMeta> {
   return meta;
 }
 
-/** Removes the project directory (docs, home, project.json). Slug must pass {@link isSafeProjectSlug}. */
 export async function deleteProject(slug: string): Promise<void> {
   if (!isSafeProjectSlug(slug)) {
     throw new Error("Invalid slug");
@@ -154,7 +145,6 @@ export function resolveDocsFile(slug: string, segments: string[]): string {
   return path.join(docsDir(slug), ...segments);
 }
 
-/** True if URL segment matches on-disk name (NFC, optional whitespace collapse, Unicode white space). */
 function docSegmentMatchesDisk(diskName: string, urlSegment: string): boolean {
   const a = diskName.normalize("NFC");
   const b = urlSegment.normalize("NFC");
@@ -163,10 +153,7 @@ function docSegmentMatchesDisk(diskName: string, urlSegment: string): boolean {
   return stripWs(a) === stripWs(b);
 }
 
-/**
- * Resolves a docs-relative path to an on-disk file. Tries the exact path first, then matches each
- * segment by **Unicode NFC**, then **ignores whitespace** in segments (fixes `mOx%20系…` vs `mOx系…`).
- */
+/** Resolve `docs/` file: exact path, then per-segment NFC / Unicode whitespace-tolerant match. */
 export async function resolveDocFilePath(
   slug: string,
   relativePath: string,
@@ -184,7 +171,7 @@ export async function resolveDocFilePath(
     if (st.isFile()) return full;
     return null;
   } catch {
-    /* try NFC / whitespace-tolerant segment-by-segment match */
+    // fall through to tolerant match
   }
 
   let dir = docsDir(slug);
@@ -239,7 +226,6 @@ export async function listDocFiles(slug: string): Promise<string[]> {
   }
 }
 
-/** Read a single UTF-8 file under `docs/` (must pass safe relative path). */
 export async function readDocFile(
   slug: string,
   relativePath: string,
@@ -253,7 +239,6 @@ export async function readDocFile(
   }
 }
 
-/** Whether a path under `docs/` exists as a file (not a directory). */
 export async function isDocFile(
   slug: string,
   relativePath: string,
@@ -276,7 +261,6 @@ export async function writeDocFile(
   await fs.writeFile(full, data);
 }
 
-/** Removes a single file under `docs/` and prunes empty parent folders up to `docs/`. */
 export async function deleteDocFile(
   slug: string,
   relativePath: string,
@@ -315,7 +299,6 @@ export async function deleteDocFile(
   }
 }
 
-/** Prune empty parent dirs after a file is moved away (same logic as deleteDocFile). */
 async function pruneEmptyParentsAfterRemoval(
   slug: string,
   removedFilePath: string,
@@ -337,10 +320,6 @@ async function pruneEmptyParentsAfterRemoval(
   }
 }
 
-/**
- * Renames a single file under `docs/`. Creates parent folders for the destination.
- * Prunes empty directories left under the old path.
- */
 export async function renameDocFile(
   slug: string,
   fromRelative: string,

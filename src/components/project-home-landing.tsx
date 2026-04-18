@@ -12,7 +12,6 @@ export function ProjectHomeLanding({
 }: {
   slug: string;
   name: string;
-  /** Shared home without auth: no dashboard or navigation actions. */
   publicVisitor?: boolean;
 }) {
   const { t } = useTranslations();

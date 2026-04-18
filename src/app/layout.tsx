@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   title: "Project docs",
   description:
     "For PMs and small teams: per-project Markdown, PDFs, and docs with stable URL paths",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default async function RootLayout({
