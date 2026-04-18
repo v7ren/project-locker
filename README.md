@@ -1,124 +1,126 @@
-# Project management (Next.js)
+# 專案管理（Next.js）
 
-A self-hosted **[Next.js](https://nextjs.org)** app aimed at **project managers** and **small product or engineering teams** who need a lightweight place to keep **project materials together**: **Markdown** specs and notes, **PDFs** (contracts, one-pagers, architecture PDFs), and **other files** you drop under each project’s `docs/` folder (images, HTML, and more are handled by the document viewer). Each initiative gets stable URLs, an upload-friendly **dashboard**, optional **custom landing pages** (HTML or TSX for team-specific hubs), and **opt-in public links** when you need to share a doc or home page without a login.
+以 **[Next.js](https://nextjs.org)** 建置的**自架式**應用，主要給**專案經理（PM）**與**小型產品／開發團隊**使用：把與專案相關的資料集中在一處，例如 **Markdown** 需求與會議紀錄、**PDF**（合約、一頁式摘要、架構圖 PDF），以及放在各專案 `docs/` 下的**其他檔案**（圖片、HTML 等，由文件檢視器處理）。每個專案有固定網址、方便上傳的**儀表板**、可選的**自訂首頁**（HTML 或 TSX，適合團隊入口頁），以及需要對外分享時的**選用公開連結**（免登入檢視特定文件或首頁）。
 
-Sign-in is optional: when auth env vars are set, the app gates the UI and APIs behind **email OTP** ([Resend](https://resend.com)); when they are not set, everything runs open for local use.
+登入為選用：若設定驗證相關環境變數，介面與 API 會透過 **電子郵件 OTP**（[Resend](https://resend.com)）保護；未設定時則完全開放，適合本機或內部試用。
 
-**Traditional Chinese overview:** [README.zh-TW.md](./README.zh-TW.md)
+> **部署與安全建議：** 建議盡量在**區域網路（LAN）或僅限信任的環境**執行本應用，**不要**將實例長期對**公開網際網路**大範圍暴露。這樣可降低驗證設定疏漏、公開分享內容或自訂頁面帶來的風險，並減少惡意掃描、濫用與攻擊嘗試的暴露面。
 
----
-
-## Who it’s for
-
-- **Project managers** coordinating requirements, meeting notes, and PDF deliverables per initiative.
-- **Small teams of developers** (or design + dev pods) sharing Markdown design docs, runbooks, and binary assets in one filesystem-backed workspace—without standing up a wiki or drive maze.
+**English overview:** [README.en.md](./README.en.md)
 
 ---
 
-## What it does
+## 適用對象
 
-- **Project list** at `/` — create projects (name → URL-safe slug), open home or dashboard.
-- **Per-project home** at `/{slug}` — default landing, or `home/custom.html` (sandboxed iframe), or `home/custom.tsx` (live React preview via `react-live` / Sucrase).
-- **Dashboard** at `/{slug}/dashboard` — tabs for custom home / TSX and docs file tree; upload, rename, delete under `docs/`.
-- **Docs hub** at `/docs` — browse all projects’ `docs/` files; optional `?project={slug}` filter.
-- **Markdown & document routes** — e.g. `/{slug}/md/...` for Markdown; `/{slug}/doc/...` for **PDF**, images, HTML, and other served files (plus parallel **`/public/...`** routes for published shares).
-- **Internationalization** — UI strings in **English** and **Traditional Chinese** (`zh-TW`), driven by cookie / `Accept-Language` (see `src/lib/i18n/`).
-- **Theme** — light / dark via client provider.
-
-Metadata in `src/app/layout.tsx` describes the product as *per-project home pages and docs with stable URL paths*.
+- **專案經理**：依專案／倡議整理需求、會議紀錄與 PDF 交付物。
+- **小型開發團隊**（或設計＋工程小組）：共用 Markdown 說明、Runbook 與二進位／設計資產，以檔案系統為後端，不必另外架設完整 wiki 或雜亂的雲端資料夾結構。
 
 ---
 
-## Architecture (high level)
+## 功能概覽
 
-| Layer | Role |
-|--------|------|
-| **Next.js App Router** | Server components for data reads; client components for editors, dialogs, and previews. |
-| **Filesystem** | Source of truth under `data/projects/{slug}/` (override with `PROJECT_DATA_ROOT`). |
-| **`src/middleware.ts`** | Optional auth redirect, public viewer bypass, `/api/*` CORS helper when `DOMAIN` is set. |
-| **`src/lib/projects.ts`** | CRUD for `project.json`, `docs/`, `home/`; safe path resolution (NFC / whitespace-tolerant doc paths). |
-| **`src/lib/public-share.ts`** | `public-share.json` manifest: which `home` / `md/…` / `doc/…` keys are world-readable under `/{slug}/public/...`. |
+- **專案列表** `/`：建立專案（名稱會轉成網址安全的 slug）、進入首頁或儀表板。
+- **專案首頁** `/{slug}`：預設歡迎頁，或 `home/custom.html`（以 iframe 沙箱顯示整頁 HTML），或 `home/custom.tsx`（透過 `react-live`、Sucrase 即時預覽 React）。
+- **儀表板** `/{slug}/dashboard`：自訂首頁／TSX 與 `docs/` 檔案樹分頁；上傳、重新命名、刪除等。
+- **文件總覽** `/docs`：瀏覽所有專案的 `docs/`；可用 `?project={slug}` 篩選單一專案。
+- **Markdown 與文件路由**：`/{slug}/md/...` 檢視 Markdown；`/{slug}/doc/...` 檢視 **PDF**、圖片、HTML 等由路由提供的檔案（另有對應的 **`/public/...`** 公開路由）。
+- **介面語系**：**英文**與**繁體中文**（`zh-TW`），依 Cookie 與 `Accept-Language`（見 `src/lib/i18n/`）。
+- **主題**：淺色／深色。
 
-There is **no bundled database**; backups are “copy the data directory.”
+`src/app/layout.tsx` 的 metadata 將產品描述為：具穩定網址路徑的每專案首頁與文件。
 
 ---
 
-## On-disk layout
+## 架構摘要
 
-Default root: **`data/projects/`** (or `PROJECT_DATA_ROOT`).
+| 層級 | 說明 |
+|------|------|
+| **Next.js App Router** | 伺服端讀取資料；編輯器、對話框、預覽等為客戶端元件。 |
+| **檔案系統** | 資料來源：`data/projects/{slug}/`（可用 `PROJECT_DATA_ROOT` 覆寫）。 |
+| **`src/middleware.ts`** | 選用登入導向、公開檢視路徑略過、若設定 `DOMAIN` 則協助 `/api/*` CORS。 |
+| **`src/lib/projects.ts`** | `project.json`、`docs/`、`home/` 的讀寫；安全路徑解析（含 NFC／空白容錯的文件路徑）。 |
+| **`src/lib/public-share.ts`** | `public-share.json`：哪些 `home`／`md/…`／`doc/…` 可在 `/{slug}/public/...` 匿名存取。 |
+
+**沒有內建資料庫**；備份即為複製資料目錄。
+
+---
+
+## 磁碟目錄結構
+
+預設根目錄：**`data/projects/`**（或環境變數 `PROJECT_DATA_ROOT`）。
 
 ```text
 data/projects/
   {slug}/
     project.json          # { name, slug, createdAt }
-    public-share.json     # optional: { "paths": ["home", "md/README.md", ...] }
-    docs/                 # Markdown and other files served by doc/md routes
+    public-share.json     # 選用：{ "paths": ["home", "md/README.md", ...] }
+    docs/                 # 由 doc／md 路由提供的檔案
     home/
-      custom.html         # optional: full-page iframe home
-      custom.tsx          # optional: React snippet for live home preview
+      custom.html         # 選用：整頁 iframe 首頁
+      custom.tsx          # 選用：即時 React 片段首頁
 ```
 
-Slugs are normalized to lowercase `[a-z0-9-]+` when created by the app.
+由本 app 建立的 slug 為小寫 `[a-z0-9-]+`。
 
 ---
 
-## URL map
+## 網址對照
 
-| Path | Purpose |
-|------|---------|
-| `/` | Project list, create project |
-| `/docs` | Cross-project docs browser (`?project=` filter) |
-| `/login` | OTP email sign-in when auth is configured |
-| `/{slug}` | Project home |
-| `/{slug}/dashboard` | Manage `home/*` and `docs/*` |
-| `/{slug}/md/[[...path]]` | Markdown viewer (authenticated when auth on) |
-| `/{slug}/doc/[[...path]]` | Document viewer (e.g. **PDF**, images, HTML) |
-| `/{slug}/public`, `/{slug}/public/md/...`, etc. | **Public** viewers — only if listed in `public-share.json` |
+| 路徑 | 用途 |
+|------|------|
+| `/` | 專案列表、建立專案 |
+| `/docs` | 跨專案文件瀏覽（`?project=` 篩選） |
+| `/login` | 已設定驗證時的 OTP 登入 |
+| `/{slug}` | 專案首頁 |
+| `/{slug}/dashboard` | 管理 `home/*` 與 `docs/*` |
+| `/{slug}/md/[[...path]]` | Markdown 檢視（開啟驗證時需登入） |
+| `/{slug}/doc/[[...path]]` | 文件檢視（例如 **PDF**、圖片、HTML） |
+| `/{slug}/public`、… | **公開**檢視（須列於 `public-share.json`） |
 
-**API** (representative):
+**API**（代表性子路徑）：
 
-- `GET/POST /api/projects` — list / create
-- `DELETE /api/projects/{slug}` — remove project tree
-- `GET/PATCH …/api/projects/{slug}/docs`, `home`, `public-share`, etc. — see `src/app/api/projects/`
-- `POST /api/auth/send-otp`, `POST /api/auth/verify-otp`, `POST /api/auth/logout` — session flow
-
----
-
-## Authentication
-
-Configured only when **`getAuthEnvConfig()`** succeeds (`src/lib/auth/config.ts`): `AUTH_SECRET` (≥16 chars), non-empty **`AUTH_ALLOWED_EMAILS`**, **`RESEND_API_KEY`**, and **`RESEND_FROM`** (or `AUTH_RESEND_FROM`).
-
-When configured:
-
-- Unauthenticated users are redirected to **`/login`** (with `next=` return path), except:
-  - **`/{slug}/public/...`** public viewer paths (slug must not be reserved: `api`, `login`, `docs`),
-  - **`/api/auth/send-otp`** and **`/api/auth/verify-otp`**.
-- Other **`/api/*`** calls return **401** without a valid session cookie.
-
-When **not** configured, the app does not enforce login (useful for local sandboxes).
+- `GET`／`POST /api/projects` — 列表／建立
+- `DELETE /api/projects/{slug}` — 刪除整個專案目錄
+- 其餘 `…/api/projects/{slug}/…` — 見 `src/app/api/projects/`
+- `POST /api/auth/send-otp`、`verify-otp`、`logout` — 工作階段流程
 
 ---
 
-## Public sharing
+## 驗證行為
 
-Editors can maintain **`public-share.json`** (via the in-app share UI) so specific resources are reachable without login:
+僅在 **`getAuthEnvConfig()`** 成功時啟用（`src/lib/auth/config.ts`）：需 **`AUTH_SECRET`**（至少 16 字元）、非空的 **`AUTH_ALLOWED_EMAILS`**、**`RESEND_API_KEY`**、**`RESEND_FROM`**（或 **`AUTH_RESEND_FROM`**）。
 
-- Keys like **`home`**, **`md/{docs-relative-path}`**, **`doc/{docs-relative-path}`** (see `src/lib/public-share.ts`).
+啟用後：
 
-Only manifest-listed keys are served on the **`/public/...`** routes.
+- 未登入使用者會被導向 **`/login`**（可帶 `next=` 返回路徑），例外為：
+  - **`/{slug}/public/...`**（slug 不可為保留字 `api`、`login`、`docs`），
+  - **`/api/auth/send-otp`** 與 **`/api/auth/verify-otp`**。
+- 其餘 **`/api/*`** 若無有效 session Cookie 則回 **401**。
+
+**未**設定完整驗證時，不強制登入（利於本機沙盒）。
 
 ---
 
-## Getting started
+## 公開分享
+
+透過應用內分享 UI 維護 **`public-share.json`**，可讓下列鍵在**不登入**情況下由 **`/public/...`** 提供：
+
+- 例如 **`home`**、**`md/{相對於 docs 的路徑}`**、**`doc/{…}`**（詳見 `src/lib/public-share.ts`）。
+
+僅 manifest 列出的鍵會在公開路由上提供。
+
+---
+
+## 本地開發
 
 ```bash
 npm install
 cp .env.example .env.local
-# Edit .env.local — see Environment variables
+# 編輯 .env.local — 見下表「環境變數」
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+瀏覽器開啟 [http://localhost:3000](http://localhost:3000)。
 
 ```bash
 npm run build
@@ -127,49 +129,49 @@ npm run start
 
 ---
 
-## Environment variables
+## 環境變數
 
-Copy **`.env.example`** → **`.env.local`**. Never commit `.env.local`.
+將 **`.env.example`** 複製為 **`.env.local`**。請勿將 `.env.local` 提交版本庫。
 
-| Variable | Required for auth | Description |
-|----------|-------------------|-------------|
-| `AUTH_SECRET` | Yes | Session signing secret, **minimum 16 characters**. |
-| `AUTH_ALLOWED_EMAILS` | Yes | Allowlisted sign-in addresses (comma, `;`, or newline). |
-| `RESEND_API_KEY` | Yes | Resend API key for OTP email. |
-| `RESEND_FROM` or `AUTH_RESEND_FROM` | Yes | From address (must match a verified domain in Resend, or use Resend’s onboarding constraints for testing). |
-| `DOMAIN` | No | If set, must equal the browser **`Origin`** exactly (scheme + host, no trailing slash) for **`/api/*` CORS** (`src/lib/cors.ts`). Also feeds `allowedDevOrigins` in `next.config.ts`. |
-| `PROJECT_DATA_ROOT` | No | Projects directory; default `./data/projects`. |
-| `AUTH_ALLOWLIST_MAX` | No | Cap how many parsed allowlist emails are trusted. |
-| `NEXT_ALLOWED_DEV_ORIGINS` | No | Extra dev origins (comma-separated) for Next.js dev cross-origin behavior. |
+| 變數 | 驗證是否必填 | 說明 |
+|------|----------------|------|
+| `AUTH_SECRET` | 是 | 工作階段簽章密鑰，**至少 16 字元**。 |
+| `AUTH_ALLOWED_EMAILS` | 是 | 允許登入的信箱（逗號、`;` 或換行分隔）。 |
+| `RESEND_API_KEY` | 是 | Resend API 金鑰，用於寄送 OTP。 |
+| `RESEND_FROM` 或 `AUTH_RESEND_FROM` | 是 | 寄件者（須符合 Resend 已驗證網域；測試環境請遵守 Resend 測試寄件限制）。 |
+| `DOMAIN` | 否 | 若設定，須與瀏覽器 **`Origin`** **完全一致**（含 `https://`、無結尾斜線），供 **`/api/*` CORS**（`src/lib/cors.ts`）。並納入 `next.config.ts` 的 `allowedDevOrigins` 解析。 |
+| `PROJECT_DATA_ROOT` | 否 | 專案資料根目錄；預設 `./data/projects`。 |
+| `AUTH_ALLOWLIST_MAX` | 否 | 僅信任允許清單前 N 筆信箱。 |
+| `NEXT_ALLOWED_DEV_ORIGINS` | 否 | 開發時額外允許的來源（逗號分隔）。 |
 
 ---
 
-## Scripts
+## 指令
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server |
-| `npm run build` | Production build |
-| `npm run start` | Run production server |
+| 指令 | 說明 |
+|------|------|
+| `npm run dev` | 開發伺服器 |
+| `npm run build` | 正式建置 |
+| `npm run start` | 正式伺服器 |
 | `npm run lint` | ESLint |
 
 ---
 
-## Next.js in this repo
+## 本倉庫的 Next.js
 
-This workspace pins a **Next.js 16** stack that may differ from older tutorials. Before changing framework behavior, read the in-repo guide under `node_modules/next/dist/docs/` and any deprecation notes (see **`AGENTS.md`** / **`CLAUDE.md`** at the repo root).
-
----
-
-## Deployment notes
-
-- Set the same auth and Resend variables as in production.
-- Align **`DOMAIN`** with your real site origin for API clients that rely on cookies + CORS.
-- Mount a persistent volume or set **`PROJECT_DATA_ROOT`** so project data survives restarts.
-- Official platform notes: [Next.js deploying](https://nextjs.org/docs/app/building-your-application/deploying).
+專案使用 **Next.js 16** 等版本，行為可能與舊教學不同。修改框架相關行為前，建議閱讀 `node_modules/next/dist/docs/` 內說明與棄用提示（見倉庫根目錄 **`AGENTS.md`**／**`CLAUDE.md`**）。
 
 ---
 
-## License
+## 部署注意
 
-`private: true` in `package.json` — treat as a personal / internal project unless you add a license file.
+- 正式環境設定與本機相同的驗證與 Resend 變數。
+- **`DOMAIN`** 與實際網站 `Origin` 一致，以便依 Cookie／CORS 呼叫 API 的客戶端運作。
+- 使用持久化磁碟或設定 **`PROJECT_DATA_ROOT`**，避免重啟後資料遺失。
+- 平台細節可參考 [Next.js 部署說明](https://nextjs.org/docs/app/building-your-application/deploying)。
+
+---
+
+## 授權
+
+`package.json` 中 `private: true` — 預設為個人或內部專案；若對外發布請自行新增授權條款檔案。
