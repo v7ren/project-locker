@@ -24,9 +24,9 @@
 .DS_Store
 *.pem
 
-# Ignore everything under `data/` except `data/projects/` — that tree is scanned by Tailwind
-# `@source` during `next build` (Railway/CI). If it is missing at build time, uploaded `custom.tsx`
-# utilities are stripped from CSS and the live page looks unstyled / wrong greys.
+# Ignore everything under `data/` except the `data/projects/` directory. Per-slug payloads are
+# runtime data (see `PROJECT_DATA_ROOT`); do not commit them—especially for public mirrors.
+# Keep `data/projects/.gitkeep` so `data/projects/` exists; Tailwind `@source` still sees a path.
 
 # debug
 npm-debug.log*
@@ -42,4 +42,6 @@ yarn-error.log*
 next-env.d.ts
 /data/*
 !/data/projects/
+/data/projects/*
+!/data/projects/.gitkeep
 .env.local
