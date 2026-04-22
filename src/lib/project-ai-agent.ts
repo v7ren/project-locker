@@ -81,12 +81,20 @@ function toolProgressFromArgs(
   }
 }
 
+export type ProjectAiChatParticipant = {
+  handle: string;
+  email: string | null;
+  role: string;
+};
+
 export async function runProjectAiAgent(params: {
   slug: string;
   projectName: string;
   config: OpenRouterConfig;
   messages: ClientChatMessage[];
   viewerLocation?: string;
+  /** Signed-in team member; shapes tone and who “you” refers to. */
+  chatParticipant?: ProjectAiChatParticipant;
   signal?: AbortSignal;
   /** Fires before each model call and before each tool execution (read shows immediately). */
   onProgress?: (p: AgentStreamProgress) => void;
@@ -111,11 +119,26 @@ export async function runProjectAiAgent(params: {
       ? `\n\nUser’s current place in the app (where they were when they sent this message): ${loc}`
       : "";
 
+  const p = params.chatParticipant;
+  const who =
+    p != null
+      ? (() => {
+          const at = p.handle ? `@${p.handle}` : null;
+          const mail = p.email?.trim() ? p.email.trim() : null;
+          const label = at ?? mail ?? "a team member";
+          return `${label} (team role: ${p.role})`;
+        })()
+      : null;
+  const participantBlock =
+    who != null
+      ? `\n\nYou are replying to ${who}. Prefer direct “you” when addressing them; mention their @handle or email only when it avoids ambiguity.`
+      : "";
+
   const system = `You are a project assistant for "${projectName}" (project slug: ${slug}).
 You may only use the provided tools for this project. Docs live under the docs folder (list/read/write/delete/rename).
 The public main page for /${slug} is optional custom HTML (custom.html, sandboxed iframe) and/or custom TSX (custom.tsx, live preview); use list_home_page, read_home_page, and write_home_page. If both HTML and TSX exist, HTML is served first.
 Do not assume access to other projects.
-Use the viewer location below to tailor answers (e.g. if they are on the dashboard Docs tab, they may be editing files; if on the public home URL, they may be checking the live site).${locationBlock}
+Use the viewer location below to tailor answers (e.g. if they are on the dashboard Docs tab, they may be editing files; if on the public home URL, they may be checking the live site).${locationBlock}${participantBlock}
 
 Plan briefly, then act. Prefer search_documents for broad topics; use grep_docs for exact tokens, imports, or symbols before opening very large files. Read only what you need and cite paths like \`notes/roadmap.md\` in your answer.
 search_documents accepts optional scope: all (default), docs, or home. grep_docs scans raw file lines with a JavaScript RegExp.

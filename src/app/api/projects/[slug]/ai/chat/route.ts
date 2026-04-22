@@ -19,22 +19,35 @@ import {
 } from "@/lib/project-ai-agent";
 import { canUseProjectAi } from "@/lib/team/permissions";
 import { getTeamUserForSession } from "@/lib/team/session-bridge";
+import type { TeamUserRecord } from "@/lib/team/users-store";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
-async function blockViewerAi(): Promise<NextResponse | null> {
-  if (getAuthGateMode() === "none") return null;
+type AiChatAccess =
+  | { ok: true; user: TeamUserRecord | null; userId: string | null }
+  | { ok: false; response: NextResponse };
+
+async function resolveAiChatAccess(): Promise<AiChatAccess> {
+  if (getAuthGateMode() === "none") {
+    return { ok: true, user: null, userId: null };
+  }
   const session = await readRequestSession();
   if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
   }
   const user = await getTeamUserForSession(session);
   if (!user || !canUseProjectAi(user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
   }
-  return null;
+  return { ok: true, user, userId: user.id };
 }
 
 function isClientMessage(x: unknown): x is ClientChatMessage {
@@ -49,9 +62,9 @@ export async function GET(_request: Request, context: Ctx) {
   if (!(await projectExists(slug))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
-  const denied = await blockViewerAi();
-  if (denied) return denied;
-  const messages = await loadAiChatHistory(slug);
+  const access = await resolveAiChatAccess();
+  if (!access.ok) return access.response;
+  const messages = await loadAiChatHistory(slug, { userId: access.userId });
   return NextResponse.json({ messages });
 }
 
@@ -61,8 +74,8 @@ export async function POST(request: Request, context: Ctx) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const denied = await blockViewerAi();
-  if (denied) return denied;
+  const access = await resolveAiChatAccess();
+  if (!access.ok) return access.response;
 
   const config = getOpenRouterConfig();
   if (!config) {
@@ -75,7 +88,10 @@ export async function POST(request: Request, context: Ctx) {
     );
   }
 
-  const rl = checkAiChatRateLimit(slug, clientKeyFromRequest(request));
+  const rl = checkAiChatRateLimit(
+    slug,
+    `${access.userId ?? "anon"}\n${clientKeyFromRequest(request)}`,
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many chat requests", retryAfterSec: rl.retryAfterSec },
@@ -142,6 +158,13 @@ export async function POST(request: Request, context: Ctx) {
           messages,
           viewerLocation:
             viewerLocation && viewerLocation.length > 0 ? viewerLocation : undefined,
+          chatParticipant: access.user
+            ? {
+                handle: access.user.username,
+                email: access.user.email,
+                role: access.user.role,
+              }
+            : undefined,
           signal: request.signal,
           onProgress: (payload) => send({ type: "progress", payload }),
           onDelta: (text) => send({ type: "delta", text }),
@@ -151,7 +174,7 @@ export async function POST(request: Request, context: Ctx) {
           { role: "assistant", content: result.reply },
         ];
         if (shouldPersist) {
-          await saveAiChatHistory(slug, toStore);
+          await saveAiChatHistory(slug, toStore, { userId: access.userId });
         }
         send({ type: "done", reply: result.reply, steps: result.steps });
       } catch (e) {
@@ -181,10 +204,10 @@ export async function DELETE(_request: Request, context: Ctx) {
   if (!(await projectExists(slug))) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
-  const denied = await blockViewerAi();
-  if (denied) return denied;
+  const access = await resolveAiChatAccess();
+  if (!access.ok) return access.response;
   try {
-    await clearAiChatHistory(slug);
+    await clearAiChatHistory(slug, { userId: access.userId });
     return NextResponse.json({ ok: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Could not clear chat";

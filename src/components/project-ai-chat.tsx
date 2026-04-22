@@ -26,6 +26,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/lib/i18n/locale-provider";
+import { useSession } from "@/components/session-provider";
 
 type ChatMsg = {
   role: "user" | "assistant";
@@ -120,6 +121,22 @@ function ProjectAiChatInner({
   viewerLocation: string;
 }) {
   const { t } = useTranslations();
+  const session = useSession();
+  const chatMoniker =
+    session.username?.trim() ||
+    (session.email?.includes("@") ? session.email.split("@")[0]?.trim() : null) ||
+    null;
+  const displayHandle =
+    session.username?.trim() ?
+      `@${session.username.trim()}`
+    : session.email?.includes("@") && session.email.split("@")[0]?.trim() ?
+      `@${session.email.split("@")[0]!.trim()}`
+    : null;
+  const userBubbleLabel = displayHandle
+    ? t("dash.aiRoleUserHandle", { handle: displayHandle })
+    : t("dash.aiRoleUser");
+  const emptyBlurb =
+    chatMoniker ? t("dash.aiEmptyGreeting", { name: chatMoniker }) : t("dash.aiEmpty");
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -441,7 +458,7 @@ function ProjectAiChatInner({
                     <MessageSquare className="h-5 w-5" aria-hidden />
                   </div>
                   <p className="max-w-[18rem] text-sm text-zinc-500 dark:text-zinc-400">
-                    {t("dash.aiEmpty")}
+                    {emptyBlurb}
                   </p>
                 </div>
               ) : null}
@@ -468,7 +485,7 @@ function ProjectAiChatInner({
                         m.role === "user" ? "text-end" : "text-start",
                       )}
                     >
-                      {m.role === "user" ? t("dash.aiRoleUser") : t("dash.aiRoleAssistant")}
+                      {m.role === "user" ? userBubbleLabel : t("dash.aiRoleAssistant")}
                     </span>
                     {m.role === "user" ? (
                       <RippleButton

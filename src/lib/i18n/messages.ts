@@ -70,7 +70,9 @@ export type MessageKey =
   | "dash.aiIndexFailed"
   | "dash.aiHint"
   | "dash.aiEmpty"
+  | "dash.aiEmptyGreeting"
   | "dash.aiRoleUser"
+  | "dash.aiRoleUserHandle"
   | "dash.aiRoleAssistant"
   | "dash.aiCopyYourMessage"
   | "dash.aiThinking"
@@ -417,7 +419,9 @@ const en: Record<MessageKey, string> = {
   "dash.aiHint":
     "The assistant can manage docs and the public home page (custom.html / custom.tsx) for this project only.",
   "dash.aiEmpty": "Ask about your docs or home page, or request edits.",
+  "dash.aiEmptyGreeting": "{{name}} — ask about your docs or home page, or request edits.",
   "dash.aiRoleUser": "You",
+  "dash.aiRoleUserHandle": "{{handle}}",
   "dash.aiRoleAssistant": "Assistant",
   "dash.aiCopyYourMessage": "Copy your message",
   "dash.aiThinking": "Thinking…",
@@ -792,7 +796,9 @@ const zhTW: Record<MessageKey, string> = {
   "dash.aiHint":
     "助理可管理此專案的文件與公開首頁（custom.html／custom.tsx）。",
   "dash.aiEmpty": "可詢問文件或首頁，或請求編輯。",
+  "dash.aiEmptyGreeting": "{{name}} — 可詢問文件或首頁，或請求編輯。",
   "dash.aiRoleUser": "您",
+  "dash.aiRoleUserHandle": "{{handle}}",
   "dash.aiRoleAssistant": "助理",
   "dash.aiCopyYourMessage": "複製您的訊息",
   "dash.aiThinking": "思考中…",
