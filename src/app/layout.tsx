@@ -4,6 +4,12 @@ import { cookies } from "next/headers";
 import { AppThemeProvider } from "@/components/app-theme-provider";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
+import {
+  canManageTeamAdmin,
+  canUseProjectDashboard,
+  canUseTeamCalendar,
+} from "@/lib/team/permissions";
+import { getTeamUserForSession } from "@/lib/team/session-bridge";
 import { getRequestLocale } from "@/lib/i18n/request-locale";
 import "./globals.css";
 
@@ -37,6 +43,14 @@ export default async function RootLayout({
     sessionUser = null;
   }
 
+  const teamUser = sessionUser ? await getTeamUserForSession(sessionUser) : null;
+  const sessionEmail = sessionUser?.kind === "email" ? sessionUser.email : teamUser?.email ?? null;
+  const sessionUsername =
+    sessionUser?.kind === "user" ? sessionUser.username : teamUser?.username ?? null;
+  const canTeamAdmin = teamUser ? canManageTeamAdmin(teamUser) : false;
+  const canTeamCalendar = teamUser ? canUseTeamCalendar(teamUser) : false;
+  const canProjectDashboard = teamUser ? canUseProjectDashboard(teamUser) : true;
+
   const initialLocale = await getRequestLocale();
 
   return (
@@ -47,7 +61,13 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <AppThemeProvider
-          session={{ email: sessionUser?.email ?? null }}
+          session={{
+            email: sessionEmail,
+            username: sessionUsername,
+            canTeamAdmin,
+            canTeamCalendar,
+            canProjectDashboard,
+          }}
           initialLocale={initialLocale}
         >
           {children}

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAuthEnvConfig } from "@/lib/auth/config";
+import { getAuthGateMode } from "@/lib/auth/config";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
 import { attachApiCorsIfAllowed, maybeApiCorsPreflight } from "@/lib/cors";
@@ -37,14 +37,24 @@ export async function middleware(request: NextRequest) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 
-  if (!getAuthEnvConfig()) {
+  if (getAuthGateMode() === "none") {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 
   if (pathname.startsWith("/login")) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
-  if (pathname.startsWith("/api/auth/send-otp") || pathname.startsWith("/api/auth/verify-otp")) {
+  if (
+    pathname.startsWith("/api/auth/send-otp") ||
+    pathname.startsWith("/api/auth/verify-otp") ||
+    pathname.startsWith("/api/auth/register-request") ||
+    pathname.startsWith("/api/auth/key-login") ||
+    pathname.startsWith("/api/auth/username/") ||
+    pathname.startsWith("/api/auth/backup-login") ||
+    pathname.startsWith("/api/auth/admin-access-login") ||
+    pathname.startsWith("/api/auth/invite/redeem") ||
+    pathname.startsWith("/api/auth/redeem")
+  ) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 

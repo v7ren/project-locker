@@ -5,8 +5,10 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import type { BreadcrumbTrailItem } from "@/components/breadcrumb-trail";
 import { CenterBreadcrumbBar } from "@/components/center-breadcrumb-bar";
+import { ProjectAiLauncher } from "@/components/project-ai-launcher";
 import { PublicSharePanel } from "@/components/public-share-panel";
 import { TopRightTheme } from "@/components/top-right-theme";
+import { useSession } from "@/components/session-provider";
 import { useViewerChromeOptional } from "@/components/viewer-chrome-context";
 import { decodeDocUrlTrail, formatDocPathForDisplay } from "@/lib/doc-paths";
 import { useTranslations } from "@/lib/i18n/locale-provider";
@@ -36,12 +38,51 @@ function isPublicViewerPath(pathname: string, slug: string): boolean {
   );
 }
 
-function BottomRightProjectDock({ slug }: { slug: string }) {
-  const viewerChrome = useViewerChromeOptional();
+function BottomRightProjectDockInner({ slug }: { slug: string }) {
   const { t } = useTranslations();
+  const { canProjectDashboard } = useSession();
+  const pathname = usePathname() ?? "";
+  const onHome = isProjectHomePath(pathname, slug);
+
+  return (
+    <div
+      className={cn(
+        dockPillInner,
+        "max-w-[min(100vw-2rem,22rem)] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-end",
+      )}
+    >
+      <div className="flex flex-wrap justify-end gap-1.5">
+        {canProjectDashboard ? (
+          <Link
+            href={`/${slug}/dashboard`}
+            className="rounded-lg px-2.5 py-1 font-medium text-zinc-800 hover:bg-white/45 dark:text-zinc-100 dark:hover:bg-white/10"
+          >
+            {t("common.dashboard")}
+          </Link>
+        ) : null}
+        <Link
+          href={`/docs?project=${encodeURIComponent(slug)}`}
+          className="rounded-lg px-2.5 py-1 font-medium text-zinc-800 hover:bg-white/45 dark:text-zinc-100 dark:hover:bg-white/10"
+        >
+          {t("common.docs")}
+        </Link>
+      </div>
+      {onHome ? (
+        <div className="min-w-0 border-t border-zinc-200/50 pt-2 dark:border-zinc-600/40 sm:border-t-0 sm:border-l sm:pl-2 sm:pt-0">
+          <PublicSharePanel slug={slug} shareKey="home" triggerClassName="text-xs" />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Floating AI (all project pages) + quick links (non-dashboard only). Hidden on public viewer routes. */
+function ProjectBottomRightStack({ slug, name }: Props) {
+  const viewerChrome = useViewerChromeOptional();
+  const { canProjectDashboard } = useSession();
   const pathname = usePathname() ?? "";
   const onPublic = isPublicViewerPath(pathname, slug);
-  const onHome = isProjectHomePath(pathname, slug);
+  const onDashboard = pathname.includes("/dashboard");
   const hideFloatingChrome = Boolean(viewerChrome?.floatingUiHidden);
 
   if (onPublic) {
@@ -52,37 +93,13 @@ function BottomRightProjectDock({ slug }: { slug: string }) {
     <div
       className={cn(
         dockPillOuter,
-        "bottom-[max(5.75rem,calc(env(safe-area-inset-bottom)+4.75rem))] right-[max(1rem,env(safe-area-inset-right))] max-sm:bottom-[max(7rem,calc(env(safe-area-inset-bottom)+6rem))] items-end",
+        "bottom-[max(5.75rem,calc(env(safe-area-inset-bottom)+4.75rem))] right-[max(1rem,env(safe-area-inset-right))] max-sm:bottom-[max(7rem,calc(env(safe-area-inset-bottom)+6rem))] flex flex-col items-end gap-2",
         hideFloatingChrome && "hidden",
       )}
       aria-live="polite"
     >
-      <div
-        className={cn(
-          dockPillInner,
-          "max-w-[min(100vw-2rem,22rem)] flex-col items-stretch gap-2 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-end",
-        )}
-      >
-        <div className="flex flex-wrap justify-end gap-1.5">
-          <Link
-            href={`/${slug}/dashboard`}
-            className="rounded-lg px-2.5 py-1 font-medium text-zinc-800 hover:bg-white/45 dark:text-zinc-100 dark:hover:bg-white/10"
-          >
-            {t("common.dashboard")}
-          </Link>
-          <Link
-            href={`/docs?project=${encodeURIComponent(slug)}`}
-            className="rounded-lg px-2.5 py-1 font-medium text-zinc-800 hover:bg-white/45 dark:text-zinc-100 dark:hover:bg-white/10"
-          >
-            {t("common.docs")}
-          </Link>
-        </div>
-        {onHome ? (
-          <div className="min-w-0 border-t border-zinc-200/50 pt-2 dark:border-zinc-600/40 sm:border-t-0 sm:border-l sm:pl-2 sm:pt-0">
-            <PublicSharePanel slug={slug} shareKey="home" triggerClassName="text-xs" />
-          </div>
-        ) : null}
-      </div>
+      {canProjectDashboard ? <ProjectAiLauncher slug={slug} projectName={name} /> : null}
+      {!onDashboard ? <BottomRightProjectDockInner slug={slug} /> : null}
     </div>
   );
 }
@@ -240,7 +257,6 @@ export function ProjectChrome({ slug, name }: Props) {
     return null;
   }
   const onDashboard = pathname.includes("/dashboard");
-  const showImmersiveDock = !onDashboard;
 
   return (
     <>
@@ -273,7 +289,7 @@ export function ProjectChrome({ slug, name }: Props) {
 
       <ProjectBreadcrumbLayer slug={slug} name={name} />
 
-      {showImmersiveDock ? <BottomRightProjectDock slug={slug} /> : null}
+      <ProjectBottomRightStack slug={slug} name={name} />
     </>
   );
 }

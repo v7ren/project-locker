@@ -50,8 +50,14 @@ export function parseAllowedEmails(raw: string | undefined): Set<string> {
   return out;
 }
 
-export function getAuthEnvConfig(): AuthEnvConfig | null {
+export function getSessionSecret(): string | null {
   const secret = process.env.AUTH_SECRET?.trim();
+  if (!secret || secret.length < 16) return null;
+  return secret;
+}
+
+export function getAuthEnvConfig(): AuthEnvConfig | null {
+  const secret = getSessionSecret();
   const allowed = parseAllowedEmails(process.env.AUTH_ALLOWED_EMAILS);
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   const resendFrom =
@@ -59,7 +65,7 @@ export function getAuthEnvConfig(): AuthEnvConfig | null {
     process.env.AUTH_RESEND_FROM?.trim() ||
     "";
 
-  if (!secret || secret.length < 16) return null;
+  if (!secret) return null;
   if (allowed.size === 0) return null;
   if (!resendApiKey) return null;
   if (!resendFrom) return null;
@@ -67,7 +73,18 @@ export function getAuthEnvConfig(): AuthEnvConfig | null {
   return { secret, allowedEmails: allowed, resendApiKey, resendFrom };
 }
 
-/** Human-readable reasons auth is disabled (no secrets). For local debugging only. */
+/**
+ * - `none`: no gate (open deployment)
+ * - `email`: OTP sign-in for allowlisted emails (requires Resend + allowlist)
+ * - `username`: shared secret present but email auth not fully configured — sign-in with username only
+ */
+export function getAuthGateMode(): "none" | "email" | "username" {
+  if (getAuthEnvConfig()) return "email";
+  if (getSessionSecret()) return "username";
+  return "none";
+}
+
+/** Human-readable reasons email OTP auth is disabled. For local debugging only. */
 export function getAuthSetupIssues(): string[] {
   const issues: string[] = [];
   const secret = process.env.AUTH_SECRET?.trim();
@@ -82,6 +99,26 @@ export function getAuthSetupIssues(): string[] {
   const from = process.env.RESEND_FROM?.trim() || process.env.AUTH_RESEND_FROM?.trim();
   if (!from) issues.push("RESEND_FROM (or AUTH_RESEND_FROM) is missing or empty");
   return issues;
+}
+
+/** Explains how sign-in will work when the gate is active. */
+export function getAuthGateSetupHints(): string[] {
+  const mode = getAuthGateMode();
+  if (mode === "email") {
+    return [
+      "Allowlisted emails sign in with OTP; other users register on /login, get approved on /team, then sign in with a member access key.",
+    ];
+  }
+  if (mode === "username") {
+    return [
+      "Username-only sign-in is enabled (AUTH_SECRET set, email OTP not fully configured).",
+      "Users pick a unique username; the first account becomes admin.",
+      "Optional: AUTH_USERNAME_LOCKED and AUTH_USERNAME_ADMIN_ONLY (comma-separated names).",
+    ];
+  }
+  return [
+    "Open mode: set AUTH_SECRET (16+ chars) for username sign-in, or add AUTH_ALLOWED_EMAILS + Resend for email OTP.",
+  ];
 }
 
 export function isAllowedEmail(config: AuthEnvConfig, email: string): boolean {

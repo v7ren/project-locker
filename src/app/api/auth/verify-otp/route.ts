@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 import { getAuthEnvConfig, isAllowedEmail, normalizeAuthEmail } from "@/lib/auth/config";
+import { ensureTeamUserFromEmail } from "@/lib/team/users-store";
 import {
   cookieBaseOptions,
   OTP_COOKIE,
@@ -104,10 +105,13 @@ export async function POST(request: Request) {
 
   clearVerifyAttempts(attemptKey);
 
+  await ensureTeamUserFromEmail(email);
+
   const sessionExp = Math.floor(Date.now() / 1000) + SESSION_TTL_SEC;
   const sessionPayload: SessionTokenPayload = {
     v: 1,
     typ: "session",
+    mode: "email",
     email,
     exp: sessionExp,
   };
