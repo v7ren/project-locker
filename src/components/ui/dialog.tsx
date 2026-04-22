@@ -20,18 +20,30 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-[270] bg-black/50 backdrop-blur-[2px]", className)}
+    className={cn("fixed inset-0 z-[270]", className)}
     {...props}
   />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
+type DialogContentProps = React.ComponentPropsWithoutRef<
+  typeof DialogPrimitive.Content
+> & {
+  overlayClassName?: string;
+  /** Hide the default top-right close control (e.g. for custom headers). */
+  hideCloseButton?: boolean;
+};
+
 const DialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DialogContentProps
+>(({ className, children, overlayClassName, hideCloseButton, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay
+      className={
+        overlayClassName ?? "bg-black/50 backdrop-blur-[2px] dark:bg-black/60"
+      }
+    />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
@@ -41,13 +53,15 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close
-        type="button"
-        className="absolute right-4 top-4 rounded-md p-1 text-zinc-500 opacity-80 transition hover:bg-zinc-100 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:outline-none dark:text-zinc-400 dark:hover:bg-zinc-800 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
-        aria-label="Close"
-      >
-        <X className="h-4 w-4" />
-      </DialogPrimitive.Close>
+      {hideCloseButton ? null : (
+        <DialogPrimitive.Close
+          type="button"
+          className="absolute right-4 top-4 rounded-md p-1 text-zinc-500 opacity-80 transition hover:bg-zinc-100 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:outline-none dark:text-zinc-400 dark:hover:bg-zinc-800 dark:focus-visible:ring-zinc-600 dark:focus-visible:ring-offset-zinc-950"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
 ));

@@ -125,6 +125,11 @@ export function docsDir(slug: string): string {
   return path.join(projectDir(slug), "docs");
 }
 
+/** Per-project RAG index and metadata (isolated per slug). */
+export function ragDir(slug: string): string {
+  return path.join(projectDir(slug), ".rag");
+}
+
 export function homeDir(slug: string): string {
   return path.join(projectDir(slug), "home");
 }
@@ -379,4 +384,36 @@ export async function readHomeTsx(slug: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/** Public project home files (under `home/`). HTML is served in preference to TSX when both exist. */
+export type HomePageFile = "custom.html" | "custom.tsx";
+
+export async function listHomePageFiles(slug: string): Promise<HomePageFile[]> {
+  const out: HomePageFile[] = [];
+  if ((await readHomeHtml(slug)) !== null) out.push("custom.html");
+  if ((await readHomeTsx(slug)) !== null) out.push("custom.tsx");
+  return out;
+}
+
+export async function readHomePageFile(
+  slug: string,
+  file: HomePageFile,
+): Promise<string | null> {
+  if (file === "custom.html") return readHomeHtml(slug);
+  return readHomeTsx(slug);
+}
+
+export async function writeHomePageFile(
+  slug: string,
+  file: HomePageFile,
+  content: string,
+): Promise<void> {
+  await fs.mkdir(homeDir(slug), { recursive: true });
+  await fs.writeFile(path.join(homeDir(slug), file), content, "utf8");
+}
+
+/** Virtual path used in RAG chunks (not a docs path). */
+export function homePageRagPath(file: HomePageFile): string {
+  return `home/${file}`;
 }

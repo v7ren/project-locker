@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { scheduleProjectRagSync } from "@/lib/ai-rag-sync";
 import {
   deleteDocFile,
   isSafeRelativeSegments,
@@ -40,6 +41,7 @@ export async function POST(request: Request, context: Ctx) {
       return NextResponse.json({ error: "Invalid filename" }, { status: 400 });
     }
     await writeDocFile(slug, rel, Buffer.from(content, "utf8"));
+    scheduleProjectRagSync(slug, [rel.replace(/\\/g, "/")]);
     return NextResponse.json({ ok: true, path: rel });
   }
 
@@ -60,6 +62,7 @@ export async function POST(request: Request, context: Ctx) {
     }
     const buf = Buffer.from(await file.arrayBuffer());
     await writeDocFile(slug, name, buf);
+    scheduleProjectRagSync(slug, [name.replace(/\\/g, "/")]);
     return NextResponse.json({ ok: true, path: name });
   }
 
@@ -91,6 +94,9 @@ export async function PATCH(request: Request, context: Ctx) {
 
   try {
     await renameDocFile(slug, from, to);
+    const fromNorm = from.trim().replace(/^\/+/, "").replace(/\\/g, "/");
+    const toNormPaths = to.trim().replace(/^\/+/, "").replace(/\\/g, "/");
+    scheduleProjectRagSync(slug, [fromNorm, toNormPaths]);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Rename failed";
     if (msg === "Not found") {
@@ -148,6 +154,7 @@ export async function DELETE(request: Request, context: Ctx) {
 
   try {
     await deleteDocFile(slug, rel);
+    scheduleProjectRagSync(slug, [rel.replace(/\\/g, "/")]);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Delete failed";
     if (msg === "Not found") {

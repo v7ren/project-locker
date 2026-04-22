@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { normalizeShareKey, publicPathForShareKey } from "@/lib/public-share-urls";
 import { useTranslations } from "@/lib/i18n/locale-provider";
+import { RippleButton } from "@/components/ui/ripple-button";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -150,14 +151,15 @@ export function PublicSharePanel({ slug, shareKey, triggerClassName }: Props) {
                 {publicUrl}
               </p>
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
+                <RippleButton
                   disabled={busy}
+                  rippleColor="rgb(82 82 91 / 0.3)"
+                  duration="550ms"
                   onClick={() => void copyLink()}
-                  className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
+                  className="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-900 shadow-sm hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
                 >
                   {t("publicShare.copyLink")}
-                </button>
+                </RippleButton>
                 <button
                   type="button"
                   disabled={busy}

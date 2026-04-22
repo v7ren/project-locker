@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useSession } from "@/components/session-provider";
@@ -14,7 +15,7 @@ export function TopRightTheme() {
   const pathname = usePathname() ?? "";
   const onDashboard = pathname.includes("/dashboard");
   const focusMode = Boolean(viewerChrome?.floatingUiHidden) && !onDashboard;
-  const { email } = useSession();
+  const { email, username, canTeamAdmin, canTeamCalendar } = useSession();
   const { t } = useTranslations();
   const router = useRouter();
 
@@ -27,18 +28,42 @@ export function TopRightTheme() {
           aria-hidden={focusMode || undefined}
           inert={focusMode}
         >
-          {email ? (
-            <button
-              type="button"
-              className="rounded-md border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-sm backdrop-blur hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900/80"
-              onClick={async () => {
-                await fetch("/api/auth/logout", { method: "POST" });
-                router.refresh();
-                window.location.href = "/login";
-              }}
-            >
-              {t("auth.logout")}
-            </button>
+          {email || username ? (
+            <>
+              <Link
+                href="/profile"
+                className="rounded-md border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-sm backdrop-blur hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900/80"
+              >
+                {t("common.profile")}
+              </Link>
+              {canTeamCalendar ? (
+                <Link
+                  href="/calendar"
+                  className="rounded-md border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-sm backdrop-blur hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900/80"
+                >
+                  {t("common.teamCalendar")}
+                </Link>
+              ) : null}
+              {canTeamAdmin ? (
+                <Link
+                  href="/team"
+                  className="rounded-md border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-sm backdrop-blur hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900/80"
+                >
+                  {t("common.teamSettings")}
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                className="rounded-md border border-zinc-200 bg-white/90 px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-sm backdrop-blur hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-900/80"
+                onClick={async () => {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  router.refresh();
+                  window.location.href = "/login";
+                }}
+              >
+                {t("auth.logout")}
+              </button>
+            </>
           ) : null}
           <LocaleSwitcher />
           <ThemeToggle />

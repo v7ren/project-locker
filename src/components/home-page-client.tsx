@@ -8,7 +8,17 @@ import { useTranslations } from "@/lib/i18n/locale-provider";
 
 type Project = { slug: string; name: string };
 
-export function HomePageClient({ projects }: { projects: Project[] }) {
+export function HomePageClient({
+  projects,
+  showTeamCalendar,
+  showTeamAdmin,
+  showProjectDashboard,
+}: {
+  projects: Project[];
+  showTeamCalendar: boolean;
+  showTeamAdmin: boolean;
+  showProjectDashboard: boolean;
+}) {
   const { t } = useTranslations();
 
   return (
@@ -26,7 +36,23 @@ export function HomePageClient({ projects }: { projects: Project[] }) {
             })}
           </p>
         </div>
-        <div className="shrink-0 sm:self-end">
+        <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end sm:self-end">
+          {showTeamCalendar ? (
+            <Link
+              href="/calendar"
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900/60"
+            >
+              {t("common.teamCalendar")}
+            </Link>
+          ) : null}
+          {showTeamAdmin ? (
+            <Link
+              href="/team"
+              className="inline-flex h-10 items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-900/60"
+            >
+              {t("common.teamSettings")}
+            </Link>
+          ) : null}
           <CreateProjectDialog />
         </div>
       </header>
@@ -53,12 +79,21 @@ export function HomePageClient({ projects }: { projects: Project[] }) {
                   /{p.slug}
                 </span>
               </Link>
-              <Link
-                href={`/${p.slug}/dashboard`}
-                className="flex min-h-[44px] items-center justify-center border-t border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 sm:w-36 sm:border-t-0 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-100"
-              >
-                {t("home.dashboard")}
-              </Link>
+              {showProjectDashboard ? (
+                <Link
+                  href={`/${p.slug}/dashboard`}
+                  className="flex min-h-[44px] items-center justify-center border-t border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 sm:w-36 sm:border-t-0 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-100"
+                >
+                  {t("home.dashboard")}
+                </Link>
+              ) : (
+                <Link
+                  href={`/docs?project=${encodeURIComponent(p.slug)}`}
+                  className="flex min-h-[44px] items-center justify-center border-t border-zinc-200 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 sm:w-36 sm:border-t-0 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-100"
+                >
+                  {t("common.docs")}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

@@ -1,9 +1,17 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAuthEnvConfig } from "@/lib/auth/config";
+import { getAuthGateMode } from "@/lib/auth/config";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
 import { attachApiCorsIfAllowed, maybeApiCorsPreflight } from "@/lib/cors";
+
+/** Tab / metadata fetches must not hit the login redirect (cookies can be missing or SVG unsupported). */
+function isPublicAssetPath(pathname: string): boolean {
+  if (pathname === "/icon" || pathname === "/apple-icon") return true;
+  if (pathname === "/favicon.ico" || pathname === "/favicon.svg") return true;
+  if (/^\/[^/]+\.(?:ico|svg|png|jpg|jpeg|gif|webp)$/i.test(pathname)) return true;
+  return false;
+}
 
 function isPublicViewerPath(pathname: string): boolean {
   const parts = pathname.split("/").filter(Boolean);
@@ -21,18 +29,32 @@ export async function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
+  if (isPublicAssetPath(pathname)) {
+    return attachApiCorsIfAllowed(request, NextResponse.next());
+  }
+
   if (isPublicViewerPath(pathname)) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 
-  if (!getAuthEnvConfig()) {
+  if (getAuthGateMode() === "none") {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 
   if (pathname.startsWith("/login")) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
-  if (pathname.startsWith("/api/auth/send-otp") || pathname.startsWith("/api/auth/verify-otp")) {
+  if (
+    pathname.startsWith("/api/auth/send-otp") ||
+    pathname.startsWith("/api/auth/verify-otp") ||
+    pathname.startsWith("/api/auth/register-request") ||
+    pathname.startsWith("/api/auth/key-login") ||
+    pathname.startsWith("/api/auth/username/") ||
+    pathname.startsWith("/api/auth/backup-login") ||
+    pathname.startsWith("/api/auth/admin-access-login") ||
+    pathname.startsWith("/api/auth/invite/redeem") ||
+    pathname.startsWith("/api/auth/redeem")
+  ) {
     return attachApiCorsIfAllowed(request, NextResponse.next());
   }
 
@@ -57,6 +79,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|favicon\\.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

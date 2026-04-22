@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DocsWorkspace } from "@/components/docs-workspace";
+import { ProjectAiChat } from "@/components/project-ai-chat";
 import { ProjectHomeUpload } from "@/components/project-home-upload";
 import { useTranslations } from "@/lib/i18n/locale-provider";
 
@@ -18,7 +19,7 @@ export function ProjectDashboardClient({
   meta: Meta;
   files: string[];
   hasCustomTsx: boolean;
-  initialTab: "home" | "docs";
+  initialTab: "home" | "docs" | "ai";
 }) {
   const { t } = useTranslations();
   const router = useRouter();
@@ -87,6 +88,12 @@ export function ProjectDashboardClient({
           active={initialTab === "docs"}
           label={t("dash.tabDocs")}
         />
+        <TabLink
+          slug={meta.slug}
+          tab="ai"
+          active={initialTab === "ai"}
+          label={t("dash.tabAi")}
+        />
       </div>
 
       <div className="mt-8">
@@ -111,7 +118,7 @@ export function ProjectDashboardClient({
               <ProjectHomeUpload slug={meta.slug} />
             </div>
           </section>
-        ) : (
+        ) : initialTab === "docs" ? (
           <section id="docs">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
               {t("dash.docsSectionTitle")}
@@ -121,6 +128,18 @@ export function ProjectDashboardClient({
             </p>
             <div className="mt-6">
               <DocsWorkspace key={files.join("|")} slug={meta.slug} files={files} />
+            </div>
+          </section>
+        ) : (
+          <section id="ai">
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+              {t("dash.aiSectionTitle")}
+            </h2>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              {t("dash.aiSectionDesc")}
+            </p>
+            <div className="mt-6">
+              <ProjectAiChat slug={meta.slug} />
             </div>
           </section>
         )}
@@ -168,7 +187,12 @@ function TabLink({
   active: boolean;
   label: string;
 }) {
-  const href = tab === "home" ? `/${slug}/dashboard` : `/${slug}/dashboard?tab=docs`;
+  const href =
+    tab === "home"
+      ? `/${slug}/dashboard`
+      : tab === "ai"
+        ? `/${slug}/dashboard?tab=ai`
+        : `/${slug}/dashboard?tab=docs`;
   return (
     <Link
       href={href}

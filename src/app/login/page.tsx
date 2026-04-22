@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LoginPageClient } from "@/components/login-page-client";
-import { getAuthEnvConfig, getAuthSetupIssues } from "@/lib/auth/config";
+import { getAuthGateMode, getAuthGateSetupHints } from "@/lib/auth/config";
 import { SESSION_COOKIE } from "@/lib/auth/cookies";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { readSessionFromTokenValue } from "@/lib/auth/session";
@@ -13,7 +13,8 @@ type Props = {
 export default async function LoginPage({ searchParams }: Props) {
   const sp = await searchParams;
   const nextPath = safeNextPath(sp.next);
-  const configured = Boolean(getAuthEnvConfig());
+  const authMode = getAuthGateMode();
+  const configured = authMode !== "none";
 
   if (configured) {
     const cookieStore = await cookies();
@@ -24,10 +25,12 @@ export default async function LoginPage({ searchParams }: Props) {
     }
   }
 
-  const setupIssues =
-    !configured && process.env.NODE_ENV === "development" ? getAuthSetupIssues() : undefined;
+  const devHints =
+    process.env.NODE_ENV === "development" && authMode === "none"
+      ? getAuthGateSetupHints()
+      : undefined;
 
   return (
-    <LoginPageClient authConfigured={configured} nextPath={nextPath} setupIssues={setupIssues} />
+    <LoginPageClient authMode={authMode} nextPath={nextPath} devHints={devHints} />
   );
 }

@@ -22,6 +22,29 @@ html.dark {
   --font-mono: var(--font-geist-mono);
 }
 
+/* Magic UI ripple-button: click ripple (see `src/components/ui/ripple-button.tsx`) */
+@keyframes rippling {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .animate-rippling {
+    animation: rippling var(--duration, 600ms) ease-out forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rippling {
+    animation: none !important;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -97,5 +120,308 @@ body {
   html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t,
   html[data-pm-floating-ui="hidden"] .pm-mdviewer-pad-t-readonly {
     padding-top: 0.5rem;
+  }
+}
+
+/* Bottom-right AI chat widget: light backdrop + slide from corner */
+@keyframes pm-ai-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pm-ai-panel-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@layer components {
+  .pm-ai-widget-overlay {
+    background-color: rgb(9 9 11 / 0.42);
+    backdrop-filter: blur(5px);
+    animation: pm-ai-overlay-in 0.32s ease-out forwards;
+  }
+
+  .pm-ai-widget-panel {
+    transform-origin: bottom right;
+    will-change: transform, opacity;
+    animation: pm-ai-panel-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-ai-widget-overlay,
+  .pm-ai-widget-panel {
+    animation: none !important;
+  }
+}
+
+/* AI chat bubbles: rendered markdown (DOMPurify-sanitized) */
+@layer components {
+  /*
+   * Radix ScrollArea's viewport wraps children in a <div style="display:table"> so
+   * horizontal overflow would expand to intrinsic content width. In the chat, a
+   * wide assistant table would therefore widen the whole column and push the
+   * user bubble out. Force the viewport's direct child to behave as a block.
+   */
+  .pm-ai-scroll [data-radix-scroll-area-viewport] > div {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .ai-chat-md {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    word-break: break-word;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+  .ai-chat-md > *:first-child {
+    margin-top: 0 !important;
+  }
+  .ai-chat-md > *:last-child {
+    margin-bottom: 0 !important;
+  }
+  /* ==highlight== → <mark> (see applyChatHighlights) */
+  .ai-chat-md mark.ai-chat-highlight {
+    background-color: rgb(254 240 138 / 0.92);
+    color: inherit;
+    border-radius: 0.2em;
+    padding: 0.06em 0.22em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    font-weight: 500;
+  }
+  .ai-chat-md p {
+    margin: 0.4em 0;
+  }
+  .ai-chat-md h1,
+  .ai-chat-md h2,
+  .ai-chat-md h3 {
+    font-weight: 650;
+    line-height: 1.3;
+    margin: 0.65em 0 0.35em;
+  }
+  .ai-chat-md h1 {
+    font-size: 1.05rem;
+  }
+  .ai-chat-md h2 {
+    font-size: 0.98rem;
+  }
+  .ai-chat-md h3 {
+    font-size: 0.92rem;
+  }
+  .ai-chat-md ul,
+  .ai-chat-md ol {
+    margin: 0.4em 0;
+    padding-left: 1.2em;
+  }
+  .ai-chat-md li {
+    margin: 0.2em 0;
+  }
+  .ai-chat-md blockquote {
+    margin: 0.5em 0;
+    padding-left: 0.75em;
+    border-left: 3px solid #d4d4d8;
+    color: #52525b;
+  }
+  .ai-chat-md hr {
+    margin: 0.65em 0;
+    border: 0;
+    border-top: 1px solid #e4e4e7;
+  }
+  .ai-chat-md a {
+    color: #3f3f46;
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+  }
+  .ai-chat-md a:hover {
+    color: #18181b;
+  }
+  .ai-chat-md code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.88em;
+    padding: 0.1em 0.35em;
+    border-radius: 0.25rem;
+    background: #f4f4f5;
+  }
+  .ai-chat-md pre {
+    margin: 0.5em 0;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.5rem;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-x: auto;
+    background: #18181b;
+    color: #e4e4e7;
+    font-size: 0.8em;
+    line-height: 1.45;
+  }
+  .ai-chat-md pre code {
+    padding: 0;
+    background: transparent;
+    font-size: inherit;
+    color: inherit;
+  }
+  .ai-chat-md .md-tbl-scroll {
+    margin: 0.5em 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    border: 1px solid #e4e4e7;
+  }
+  .ai-chat-md table {
+    width: max-content;
+    max-width: none;
+    border-collapse: collapse;
+    font-size: 0.8em;
+  }
+  .ai-chat-md th,
+  .ai-chat-md td {
+    border: 1px solid #e4e4e7;
+    padding: 0.35em 0.5em;
+    text-align: left;
+  }
+  .ai-chat-md th {
+    background: #f4f4f5;
+    font-weight: 600;
+  }
+
+  html.dark .ai-chat-md blockquote {
+    border-left-color: #52525e;
+    color: #a1a1aa;
+  }
+  html.dark .ai-chat-md hr {
+    border-top-color: #3f3f46;
+  }
+  html.dark .ai-chat-md a {
+    color: #d4d4d8;
+  }
+  html.dark .ai-chat-md a:hover {
+    color: #fafafa;
+  }
+  html.dark .ai-chat-md code {
+    background: #27272a;
+    color: #e4e4e7;
+  }
+  html.dark .ai-chat-md .md-tbl-scroll {
+    border-color: #3f3f46;
+  }
+  html.dark .ai-chat-md th,
+  html.dark .ai-chat-md td {
+    border-color: #3f3f46;
+  }
+  html.dark .ai-chat-md th {
+    background: #27272a;
+  }
+  html.dark .ai-chat-md mark.ai-chat-highlight {
+    background-color: rgb(63 63 70 / 0.95);
+    color: #fafafa;
+    font-weight: 500;
+  }
+
+  /* User bubble: zinc emphasis (monochrome) */
+  .ai-chat-md--user blockquote {
+    border-left-color: #a1a1aa;
+    color: #3f3f46;
+  }
+  .ai-chat-md--user a {
+    color: #27272a;
+  }
+  .ai-chat-md--user a:hover {
+    color: #09090b;
+  }
+  .ai-chat-md--user code {
+    background: #e4e4e7;
+    color: #18181b;
+  }
+  .ai-chat-md--user hr {
+    border-top-color: #d4d4d8;
+  }
+  .ai-chat-md--user .md-tbl-scroll {
+    border-color: #d4d4d8;
+  }
+  .ai-chat-md--user th,
+  .ai-chat-md--user td {
+    border-color: #d4d4d8;
+  }
+  .ai-chat-md--user th {
+    background: #e4e4e7;
+  }
+  .ai-chat-md--user pre {
+    background: #18181b;
+    color: #f4f4f5;
+  }
+  html.dark .ai-chat-md--user blockquote {
+    border-left-color: #52525e;
+    color: #d4d4d8;
+  }
+  html.dark .ai-chat-md--user a {
+    color: #e4e4e7;
+  }
+  html.dark .ai-chat-md--user a:hover {
+    color: #fafafa;
+  }
+  html.dark .ai-chat-md--user code {
+    background: #3f3f46;
+    color: #fafafa;
+  }
+  html.dark .ai-chat-md--user hr {
+    border-top-color: #52525e;
+  }
+  html.dark .ai-chat-md--user .md-tbl-scroll {
+    border-color: #52525e;
+  }
+  html.dark .ai-chat-md--user th,
+  html.dark .ai-chat-md--user td {
+    border-color: #52525e;
+  }
+  html.dark .ai-chat-md--user th {
+    background: #3f3f46;
+  }
+  .ai-chat-md--user mark.ai-chat-highlight {
+    background-color: rgba(255, 255, 255, 0.22);
+    color: inherit;
+    font-weight: 600;
+  }
+}
+
+@keyframes pm-ai-typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@layer components {
+  .pm-ai-typing-dot {
+    animation: pm-ai-typing-dot 1.1s ease-in-out infinite;
+  }
+  .pm-ai-typing-dot:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .pm-ai-typing-dot:nth-child(3) {
+    animation-delay: 0.3s;
   }
 }

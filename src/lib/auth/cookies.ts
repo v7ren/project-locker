@@ -4,12 +4,29 @@ export const OTP_COOKIE = "pm_otp";
 export const OTP_TTL_SEC = 600;
 export const SESSION_TTL_SEC = 14 * 24 * 60 * 60;
 
-export type SessionTokenPayload = {
-  v: 1;
-  typ: "session";
-  email: string;
-  exp: number;
-};
+/** Legacy sessions used only `email` + `exp` without `mode`. */
+export type SessionTokenPayload =
+  | {
+      v: 1;
+      typ: "session";
+      mode: "email";
+      email: string;
+      exp: number;
+    }
+  | {
+      v: 1;
+      typ: "session";
+      mode: "user";
+      userId: string;
+      username: string;
+      exp: number;
+    }
+  | {
+      v: 1;
+      typ: "session";
+      email: string;
+      exp: number;
+    };
 
 export type OtpTokenPayload = {
   v: 1;

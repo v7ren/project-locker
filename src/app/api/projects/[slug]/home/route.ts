@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { homeDir, projectExists } from "@/lib/projects";
+import { scheduleProjectRagSync } from "@/lib/ai-rag-sync";
+import { homeDir, homePageRagPath, projectExists } from "@/lib/projects";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -42,5 +43,8 @@ export async function POST(request: Request, context: Ctx) {
   await fs.mkdir(dir, { recursive: true });
   const buf = Buffer.from(await file.arrayBuffer());
   await fs.writeFile(path.join(dir, target), buf);
+  scheduleProjectRagSync(slug, [
+    homePageRagPath(target === "custom.html" ? "custom.html" : "custom.tsx"),
+  ]);
   return NextResponse.json({ ok: true, savedAs: target });
 }

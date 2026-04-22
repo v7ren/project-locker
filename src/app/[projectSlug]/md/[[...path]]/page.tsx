@@ -1,5 +1,9 @@
 import { MdViewerWorkspaceLoader } from "@/components/mdviewer-workspace-loader";
 import { segmentsToDocsRelativePath } from "@/lib/doc-paths";
+import { getAuthGateMode } from "@/lib/auth/config";
+import { readRequestSession } from "@/lib/auth/request-session";
+import { isViewer } from "@/lib/team/permissions";
+import { getTeamUserForSession } from "@/lib/team/session-bridge";
 import { notFound, redirect } from "next/navigation";
 import {
   isSafeRelativeSegments,
@@ -17,6 +21,13 @@ export default async function MarkdownEditorPage({ params }: Props) {
   if (!meta) notFound();
 
   if (segments.length === 0) {
+    if (getAuthGateMode() !== "none") {
+      const session = await readRequestSession();
+      const user = session ? await getTeamUserForSession(session) : null;
+      if (user && isViewer(user)) {
+        redirect(`/docs?project=${encodeURIComponent(meta.slug)}`);
+      }
+    }
     redirect(`/${meta.slug}/dashboard?tab=docs`);
   }
 

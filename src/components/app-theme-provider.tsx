@@ -25,7 +25,19 @@ export function AppThemeProvider({ children, session, initialLocale }: Props) {
       scriptProps={themeScriptProps}
     >
       <LocaleProvider initialLocale={initialLocale}>
-        <SessionProvider session={session ?? { email: null }}>{children}</SessionProvider>
+        <SessionProvider
+          session={
+            session ?? {
+              email: null,
+              username: null,
+              canTeamAdmin: false,
+              canTeamCalendar: false,
+              canProjectDashboard: true,
+            }
+          }
+        >
+          {children}
+        </SessionProvider>
       </LocaleProvider>
     </ThemeProvider>
   );
