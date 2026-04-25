@@ -159,7 +159,7 @@ Copy **`.env.example`** → **`.env.local`**. Never commit `.env.local`.
 
 ## Next.js in this repo
 
-This workspace pins a **Next.js 16** stack that may differ from older tutorials. Before changing framework behavior, read the in-repo guide under `node_modules/next/dist/docs/` and any deprecation notes (see **`AGENTS.md`** / **`CLAUDE.md`** at the repo root).
+This workspace pins a **Next.js 16** stack that may differ from older tutorials. Before changing framework behavior, read the in-repo guide under `node_modules/next/dist/docs/` and any deprecation notes (see **`AGENTS.md`** at the repo root).
 
 ---
 

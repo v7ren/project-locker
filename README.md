@@ -159,7 +159,7 @@ npm run start
 
 ## 本倉庫的 Next.js
 
-專案使用 **Next.js 16** 等版本，行為可能與舊教學不同。修改框架相關行為前，建議閱讀 `node_modules/next/dist/docs/` 內說明與棄用提示（見倉庫根目錄 **`AGENTS.md`**／**`CLAUDE.md`**）。
+專案使用 **Next.js 16** 等版本，行為可能與舊教學不同。修改框架相關行為前，建議閱讀 `node_modules/next/dist/docs/` 內說明與棄用提示（見倉庫根目錄 **`AGENTS.md`**）。
 
 ---
 

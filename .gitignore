@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+.nyc_output
 
 # next.js
 /.next/
@@ -19,14 +20,24 @@
 
 # production
 /build
+dist
 
 # misc
 .DS_Store
+Thumbs.db
+Desktop.ini
 *.pem
+*.log
+*.swp
+*.swo
+*~
 
-# Ignore everything under `data/` except the `data/projects/` directory. Per-slug payloads are
-# runtime data (see `PROJECT_DATA_ROOT`); do not commit them—especially for public mirrors.
-# Keep `data/projects/.gitkeep` so `data/projects/` exists; Tailwind `@source` still sees a path.
+# local env and secrets (never commit; keep .env.example for docs)
+.env
+.env.*
+!.env.example
+!.env*.example
+.envrc
 
 # debug
 npm-debug.log*
@@ -40,8 +51,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# caches
+.turbo
+.cache
+.eslintcache
+.parcel-cache
+
+# IDE / OS (machine-specific)
+.idea/
+*.iml
+
+# scratch / duplicates (never ship)
+/temp/
+**/* copy.tsx
+
+# Runtime project payloads only on disk (see PROJECT_DATA_ROOT); not for git.
 /data/*
 !/data/projects/
 /data/projects/*
 !/data/projects/.gitkeep
-.env.local
